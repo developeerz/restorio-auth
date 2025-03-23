@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    firstname VARCHAR(63) NOT NULL,
+    lastname VARCHAR(63) NOT NULL,
+    telegram VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    registration_date TIMESTAMP NOT NULL,
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE
+);
