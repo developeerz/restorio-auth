@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -16,10 +17,10 @@ type Jwt struct {
 
 func genAccessToken(userId string, auths []string) *jwt.MapClaims {
 	return &jwt.MapClaims{
-		"sub":  userId,
-		"role": auths,
-		"iat":  jwt.NewNumericDate(time.Now()),
-		"exp":  jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		"sub":   userId,
+		"roles": auths,
+		"iat":   jwt.NewNumericDate(time.Now()),
+		"exp":   jwt.NewNumericDate(time.Now().Add(time.Hour)),
 	}
 }
 
@@ -52,21 +53,7 @@ func NewJwt(userId int64, auths []string) (*Jwt, error) {
 }
 
 func ParseRefresh(refreshToken string) (int64, error) {
-	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.ConfigService.Refresh), nil
-	})
-
-	if err != nil {
-		return 0, err
-	}
-
-	if !token.Valid {
-		return 0, fmt.Errorf("Not valid token")
-	}
-
-	if isExpired(token) {
-		return 0, fmt.Errorf("Token is expired")
-	}
+	token, err := getValidToken(refreshToken, config.ConfigService.Refresh)
 
 	strUserId, err := token.Claims.GetSubject()
 	if err != nil {
@@ -81,7 +68,56 @@ func ParseRefresh(refreshToken string) (int64, error) {
 	return userId, nil
 }
 
-func isExpired(token *jwt.Token) bool {
+func ParseAccess(accessToken string) (string, []string, error) {
+	token, err := getValidToken(accessToken, config.ConfigService.Access)
+	if err != nil {
+		return "", nil, errors.New("invalid token")
+	}
+
+	strUserId, err := token.Claims.GetSubject()
+	if err != nil {
+		return "", nil, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", nil, errors.New("invalid claims")
+	}
+
+	roles, ok := claims["roles"].([]interface{})
+	if !ok {
+		return "", nil, errors.New("invalid roles")
+	}
+
+	var roleStrings []string
+	for _, role := range roles {
+		roleStrings = append(roleStrings, role.(string))
+	}
+
+	return strUserId, roleStrings, nil
+}
+
+func getValidToken(token string, key string) (*jwt.Token, error) {
+	jwt, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		return []byte(key), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !jwt.Valid {
+		return nil, fmt.Errorf("Not valid token")
+	}
+
+	if expired(jwt) {
+		return nil, fmt.Errorf("Token is expired")
+	}
+
+	return jwt, nil
+}
+
+func expired(token *jwt.Token) bool {
 	date, err := token.Claims.GetExpirationTime()
 	if err != nil {
 		return true

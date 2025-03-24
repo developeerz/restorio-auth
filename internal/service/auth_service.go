@@ -32,7 +32,3 @@ func (authService *AuthService) Refresh(refreshToken string) (*jwt.Jwt, error) {
 
 	return jwt, nil
 }
-
-func (authService *AuthService) CheckAccess() {
-
-}

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/developeerz/restorio-auth/internal/dto"
+	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/developeerz/restorio-auth/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -40,17 +41,28 @@ func (authHandler *AuthHandler) Refresh(ctx *gin.Context) {
 }
 
 func (authHandler *AuthHandler) CheckAccess(ctx *gin.Context) {
-	// authHeader := ctx.GetHeader("Authorization")
-	// if authHeader == "" {
-	// 	ctx.JSON(http.StatusUnauthorized, &dto.Error{Message: "Authorization header required"})
-	// 	return
-	// }
+	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" {
+		ctx.JSON(http.StatusUnauthorized, &dto.Error{Message: "Authorization header required"})
+		return
+	}
 
-	// token, msg := extractToken(authHeader)
-	// if msg != nil {
-	// 	ctx.JSON(http.StatusUnauthorized, msg)
-	// 	return
-	// }
+	accessToken, msg := extractToken(authHeader)
+	if msg != nil {
+		ctx.JSON(http.StatusUnauthorized, msg)
+		return
+	}
+
+	id, roles, err := jwt.ParseAccess(accessToken)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, msg)
+		return
+	}
+
+	ctx.Header("X-User-Id", id)
+	ctx.Header("X-Roles", strings.Join(roles, ","))
+
+	ctx.Status(http.StatusOK)
 }
 
 func extractToken(authHeader string) (string, *dto.Error) {
