@@ -44,7 +44,7 @@ func (r *userRepository) CreateUser(user *models.User) error {
 }
 
 func (r *userRepository) VerifyUser(userId int64) error {
-	result := r.db.Table("users").Where("id = ?", userId).Update("is_verified", true)
+	result := r.db.Table("users").Where("id = ?", userId).Update("verified", true)
 	return result.Error
 }
 

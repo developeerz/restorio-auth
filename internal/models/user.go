@@ -9,7 +9,7 @@ type User struct {
 	Telegram         string `gorm:"unique,size:255"`
 	Password         string `gorm:"size:255"`
 	RegistrationDate time.Time
-	IsVerified       bool `gorm:"default:false"`
+	Verified         bool `gorm:"default:false"`
 }
 
 type UserCode struct {

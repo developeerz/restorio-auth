@@ -9,5 +9,5 @@ func NewAuthRouter(router *gin.Engine, authHandler *handler.AuthHandler) {
 	authapi := router.Group("/api/auth")
 
 	authapi.POST("/check-acccess", authHandler.CheckAccess)
-	authapi.POST("/refresh", authHandler.Refresh)
+	authapi.GET("/refresh", authHandler.Refresh)
 }

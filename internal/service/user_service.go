@@ -85,7 +85,7 @@ func (userService *UserService) SignIn(req *dto.SignInRequest) (int, *jwt.Jwt, *
 		return http.StatusNotFound, nil, &dto.Error{Message: "User not Found"}, err
 	}
 
-	if !user.IsVerified {
+	if !user.Verified {
 		return http.StatusUnauthorized, nil, &dto.Error{Message: "User not verified"}, nil
 	}
 

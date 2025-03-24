@@ -16,18 +16,18 @@ type Jwt struct {
 
 func genAccessToken(userId string, auths []string) *jwt.MapClaims {
 	return &jwt.MapClaims{
-		"sub": userId,
-		"aud": auths,
-		"iss": jwt.NewNumericDate(time.Now()),
-		"iat": jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		"sub":  userId,
+		"role": auths,
+		"iat":  jwt.NewNumericDate(time.Now()),
+		"exp":  jwt.NewNumericDate(time.Now().Add(time.Hour)),
 	}
 }
 
 func genRefreshToken(userId string) *jwt.MapClaims {
 	return &jwt.MapClaims{
 		"sub": userId,
-		"iss": jwt.NewNumericDate(time.Now()),
-		"iat": jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
+		"iat": jwt.NewNumericDate(time.Now()),
+		"exp": jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
 	}
 }
 
@@ -86,5 +86,6 @@ func isExpired(token *jwt.Token) bool {
 	if err != nil {
 		return true
 	}
+
 	return date.Time.Compare(time.Now()) == -1
 }

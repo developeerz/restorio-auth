@@ -20,7 +20,7 @@ func SignUpToUser(signUp *dto.SignUpRequest) (*models.User, error) {
 		Telegram:         signUp.Telegram,
 		Password:         string(hashedPassword),
 		RegistrationDate: time.Now(),
-		IsVerified:       false,
+		Verified:         false,
 	}, nil
 }
 
