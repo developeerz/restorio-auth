@@ -19,7 +19,7 @@ func main() {
 	userService := service.NewUserService(userRepository)
 	userHandler := handler.NewUserHandler(userService)
 
-	authService := service.NewAuthService()
+	authService := service.NewAuthService(userRepository)
 	authHandler := handler.NewAuthHandler(authService)
 
 	router := gin.Default()

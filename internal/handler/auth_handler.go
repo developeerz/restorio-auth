@@ -30,23 +30,27 @@ func (authHandler *AuthHandler) Refresh(ctx *gin.Context) {
 		return
 	}
 
-	// refresh
+	jwt, err := authHandler.authService.Refresh(token)
+	if err != nil {
+		ctx.Status(http.StatusUnauthorized)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, jwt)
 }
 
 func (authHandler *AuthHandler) CheckAccess(ctx *gin.Context) {
-	authHeader := ctx.GetHeader("Authorization")
-	if authHeader == "" {
-		ctx.JSON(http.StatusUnauthorized, &dto.Error{Message: "Authorization header required"})
-		return
-	}
+	// authHeader := ctx.GetHeader("Authorization")
+	// if authHeader == "" {
+	// 	ctx.JSON(http.StatusUnauthorized, &dto.Error{Message: "Authorization header required"})
+	// 	return
+	// }
 
-	token, msg := extractToken(authHeader)
-	if msg != nil {
-		ctx.JSON(http.StatusUnauthorized, msg)
-		return
-	}
-
-	// check access
+	// token, msg := extractToken(authHeader)
+	// if msg != nil {
+	// 	ctx.JSON(http.StatusUnauthorized, msg)
+	// 	return
+	// }
 }
 
 func extractToken(authHeader string) (string, *dto.Error) {
