@@ -10,7 +10,6 @@ type UserRepository interface {
 	GetUserAuths(userId int64) ([]models.UserAuth, error)
 	CreateVerificationCode(userCode *models.UserCode) error
 	DeleteVerificationCode(userCode *models.UserCode) error
-	FindVerificationCodeByUserID(userId int64, code int) error
 	CheckVerificationCode(telegram string, code int) (int64, error)
 	SetUserAuth(userAuth *models.UserAuth) error
 	CreateUser(user *models.User) error
@@ -34,18 +33,15 @@ func (r *userRepository) FindByTelegram(telegram string) (*models.User, error) {
 }
 
 func (r *userRepository) SaveUser(user *models.User) error {
-	result := r.db.Save(user)
-	return result.Error
+	return r.db.Save(user).Error
 }
 
 func (r *userRepository) CreateUser(user *models.User) error {
-	result := r.db.Create(user)
-	return result.Error
+	return r.db.Create(user).Error
 }
 
 func (r *userRepository) VerifyUser(userId int64) error {
-	result := r.db.Table("users").Where("id = ?", userId).Update("verified", true)
-	return result.Error
+	return r.db.Table("users").Where("id = ?", userId).Update("verified", true).Error
 }
 
 func (r *userRepository) GetUserAuths(userId int64) ([]models.UserAuth, error) {
@@ -55,32 +51,24 @@ func (r *userRepository) GetUserAuths(userId int64) ([]models.UserAuth, error) {
 }
 
 func (r *userRepository) CreateUserAuth(userAuth *models.UserAuth) error {
-	result := r.db.Create(userAuth)
-	return result.Error
+	return r.db.Create(userAuth).Error
 }
 
 func (r *userRepository) CreateVerificationCode(userCode *models.UserCode) error {
-	result := r.db.Create(userCode)
-	return result.Error
+	return r.db.Create(userCode).Error
 }
 
 func (r *userRepository) DeleteVerificationCode(userCode *models.UserCode) error {
-	result := r.db.Delete(userCode)
-	return result.Error
-}
-
-func (r *userRepository) FindVerificationCodeByUserID(userId int64, code int) error {
-	result := r.db.Table("user_codes").Where("user_id = ? and code = ?", userId, code)
-	return result.Error
+	return r.db.Table("user_codes").Where("telegram = ?", userCode.Telegram).Delete(userCode).Error
 }
 
 func (r *userRepository) CheckVerificationCode(telegram string, code int) (int64, error) {
-	var userCode *models.UserCode
-	result := r.db.Table("user_codes uc").
-		Joins("JOIN users us ON us.id = uc.user_id").
-		Where("us.telegram = ? AND uc.code = ?", telegram, code).
-		First(&userCode)
-	return userCode.UserId, result.Error
+	var user models.User
+	result := r.db.Select("us.id").Table("users us").
+		Joins("JOIN user_codes uc ON uc.telegram = us.telegram").
+		Where("uc.telegram = ? AND uc.code = ?", telegram, code).
+		First(&user)
+	return user.ID, result.Error
 }
 
 func (r *userRepository) SetUserAuth(userAuth *models.UserAuth) error {
