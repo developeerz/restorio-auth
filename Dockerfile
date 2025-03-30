@@ -6,13 +6,13 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o exec ./cmd/restorio-auth
+RUN CGO_ENABLED=0 GOOS=linux go build -o restorio-auth-service ./cmd/restorio-auth
 
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/exec /app/
+COPY --from=builder /app/restorio-auth-service /app/
 
-CMD ["./exec"]
+CMD ["./restorio-auth-service"]

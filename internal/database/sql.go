@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/developeerz/restorio-auth/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -11,7 +12,7 @@ import (
 var DB *gorm.DB
 
 func Connect() {
-	dsn := "host=postgres user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
+	dsn := config.ConfigService.Postgres
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Database connection error: %v", err)
