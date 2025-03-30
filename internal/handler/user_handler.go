@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/developeerz/restorio-auth/internal/dto"
 	"github.com/developeerz/restorio-auth/internal/service"
@@ -26,6 +27,8 @@ func (handler *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
+	req.Telegram, _ = strings.CutPrefix(req.Telegram, "@")
+
 	status, msg, err := handler.userService.SignUp(&req)
 	if err != nil || status != http.StatusOK {
 		ctx.JSON(status, msg)
@@ -45,6 +48,8 @@ func (handler *UserHandler) Verification(ctx *gin.Context) {
 		return
 	}
 
+	req.Telegram, _ = strings.CutPrefix(req.Telegram, "@")
+
 	status, msg, err := handler.userService.Verify(&req)
 	if err != nil {
 		ctx.JSON(status, msg)
@@ -63,6 +68,8 @@ func (handler *UserHandler) SignIn(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, dto.Error{Message: "Cannot parse json"})
 		return
 	}
+
+	req.Telegram, _ = strings.CutPrefix(req.Telegram, "@")
 
 	status, jwt, msg, err := handler.userService.SignIn(&req)
 	if err != nil || status != http.StatusOK {

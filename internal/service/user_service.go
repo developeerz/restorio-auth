@@ -39,7 +39,7 @@ func (userService *UserService) SignUp(req *dto.SignUpRequest) (int, *dto.Error,
 		return http.StatusConflict, &dto.Error{Message: "User already signed up"}, err
 	}
 
-	userCode := models.UserCode{UserId: user.ID, Code: rand.Intn(rangeVal) + minVal}
+	userCode := models.UserCode{Telegram: user.Telegram, Code: rand.Intn(rangeVal) + minVal}
 	err = userService.userRepository.CreateVerificationCode(&userCode)
 	if err != nil {
 		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
@@ -56,6 +56,12 @@ func (userService *UserService) Verify(req *dto.VerificationRequest) (int, *dto.
 		return http.StatusUnauthorized, &dto.Error{Message: "Wrong code or telegram"}, err
 	}
 
+	userCode := &models.UserCode{Telegram: req.Telegram, Code: req.Code}
+	err = userService.userRepository.DeleteVerificationCode(userCode)
+	if err != nil {
+		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
+	}
+
 	err = userService.userRepository.VerifyUser(userId)
 	if err != nil {
 		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
@@ -63,12 +69,6 @@ func (userService *UserService) Verify(req *dto.VerificationRequest) (int, *dto.
 
 	userAuth := &models.UserAuth{UserId: userId, AuthId: models.USER}
 	err = userService.userRepository.SetUserAuth(userAuth)
-	if err != nil {
-		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
-	}
-
-	userCode := &models.UserCode{UserId: userId, Code: req.Code}
-	err = userService.userRepository.DeleteVerificationCode(userCode)
 	if err != nil {
 		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
 	}
