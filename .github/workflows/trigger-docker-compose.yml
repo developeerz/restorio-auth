@@ -1,4 +1,4 @@
-name: Trigger Docker Compose Repo
+name: Trigger Docker Compose
 
 on:
   push:
@@ -9,10 +9,10 @@ jobs:
   trigger:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger docker-compose-repo Workflow
+      - name: Trigger docker-compose Workflow
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.ORG_TOKEN }} 
           repository: developeerz/docker-compose
-          event-type: trigger-from-app1
+          event-type: trigger-from-restorio-auth
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
