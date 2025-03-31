@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"strings"
 	"time"
 
 	"github.com/developeerz/restorio-auth/internal/dto"
@@ -9,6 +10,7 @@ import (
 )
 
 func SignUpToUser(signUp *dto.SignUpRequest) (*models.User, error) {
+	signUp.Telegram, _ = strings.CutPrefix(signUp.Telegram, "@")
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signUp.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -21,6 +23,15 @@ func SignUpToUser(signUp *dto.SignUpRequest) (*models.User, error) {
 		Password:         string(hashedPassword),
 		RegistrationDate: time.Now(),
 		Verified:         false,
+	}, nil
+}
+
+func VerificationToUserCode(v *dto.VerificationRequest) (*models.UserCode, error) {
+	v.Telegram, _ = strings.CutPrefix(v.Telegram, "@")
+
+	return &models.UserCode{
+		Telegram: v.Telegram,
+		Code:     v.Code,
 	}, nil
 }
 
