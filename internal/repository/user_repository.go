@@ -10,7 +10,7 @@ type UserRepository interface {
 	GetUserAuths(userId int64) ([]models.UserAuth, error)
 	CreateVerificationCode(userCode *models.UserCode) error
 	DeleteVerificationCode(userCode *models.UserCode) error
-	CheckVerificationCode(telegram string, code int) (int64, error)
+	CheckVerificationCode(userCode *models.UserCode) (int64, error)
 	SetUserAuth(userAuth *models.UserAuth) error
 	CreateUser(user *models.User) error
 	SaveUser(user *models.User) error
@@ -62,11 +62,11 @@ func (r *userRepository) DeleteVerificationCode(userCode *models.UserCode) error
 	return r.db.Table("user_codes").Where("telegram = ?", userCode.Telegram).Delete(userCode).Error
 }
 
-func (r *userRepository) CheckVerificationCode(telegram string, code int) (int64, error) {
+func (r *userRepository) CheckVerificationCode(userCode *models.UserCode) (int64, error) {
 	var user models.User
 	result := r.db.Select("us.id").Table("users us").
 		Joins("JOIN user_codes uc ON uc.telegram = us.telegram").
-		Where("uc.telegram = ? AND uc.code = ?", telegram, code).
+		Where("uc.telegram = ? AND uc.code = ?", userCode.Telegram, userCode.Code).
 		First(&user)
 	return user.ID, result.Error
 }

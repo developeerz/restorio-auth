@@ -3,6 +3,7 @@ package service
 import (
 	"math/rand"
 	"net/http"
+	"strings"
 
 	"github.com/developeerz/restorio-auth/internal/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
@@ -51,12 +52,12 @@ func (userService *UserService) SignUp(req *dto.SignUpRequest) (int, *dto.Error,
 func (userService *UserService) Verify(req *dto.VerificationRequest) (int, *dto.Error, error) {
 	var err error
 
-	userId, err := userService.userRepository.CheckVerificationCode(req.Telegram, req.Code)
+	userCode, _ := mapper.VerificationToUserCode(req)
+	userId, err := userService.userRepository.CheckVerificationCode(userCode)
 	if err != nil {
 		return http.StatusUnauthorized, &dto.Error{Message: "Wrong code or telegram"}, err
 	}
 
-	userCode := &models.UserCode{Telegram: req.Telegram, Code: req.Code}
 	err = userService.userRepository.DeleteVerificationCode(userCode)
 	if err != nil {
 		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
@@ -80,6 +81,7 @@ func (userService *UserService) SignIn(req *dto.SignInRequest) (int, *jwt.Jwt, *
 	var err error
 	var user *models.User
 
+	req.Telegram, _ = strings.CutPrefix(req.Telegram, "@")
 	user, err = userService.userRepository.FindByTelegram(req.Telegram)
 	if err != nil {
 		return http.StatusNotFound, nil, &dto.Error{Message: "User not Found"}, err
