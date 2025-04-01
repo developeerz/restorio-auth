@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/developeerz/restorio-auth/internal/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/developeerz/restorio-auth/internal/service"
 	"github.com/gin-gonic/gin"
@@ -19,43 +19,38 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 }
 
 func (authHandler *AuthHandler) Refresh(ctx *gin.Context) {
-	authHeader := ctx.GetHeader("Authorization")
-	if authHeader == "" {
-		ctx.JSON(http.StatusUnauthorized, &dto.Error{Message: "Authorization header required"})
+	refreshOld, err := ctx.Cookie("refresh")
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	token, msg := extractToken(authHeader)
-	if msg != nil {
-		ctx.JSON(http.StatusUnauthorized, msg)
-		return
-	}
-
-	jwt, err := authHandler.authService.Refresh(token)
+	access, refresh, err := authHandler.authService.Refresh(refreshOld)
 	if err != nil {
 		ctx.Status(http.StatusUnauthorized)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, jwt)
+	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/auth/refresh", "", false, true)
+	ctx.JSON(http.StatusOK, access)
 }
 
 func (authHandler *AuthHandler) CheckAccess(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	if authHeader == "" {
-		ctx.JSON(http.StatusUnauthorized, &dto.Error{Message: "Authorization header required"})
+		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	accessToken, msg := extractToken(authHeader)
-	if msg != nil {
-		ctx.JSON(http.StatusUnauthorized, msg)
-		return
-	}
-
-	id, roles, err := jwt.ParseAccess(accessToken)
+	accessToken, err := extractToken(authHeader)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, msg)
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	id, roles, err := jwt.GetAccess(accessToken)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
@@ -65,13 +60,13 @@ func (authHandler *AuthHandler) CheckAccess(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-func extractToken(authHeader string) (string, *dto.Error) {
+func extractToken(authHeader string) (string, error) {
 	if authHeader == "" {
-		return "", &dto.Error{Message: "Authorization header required"}
+		return "", fmt.Errorf("Empty auth header")
 	}
 
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return "", &dto.Error{Message: "Invalid authorization format"}
+		return "", fmt.Errorf("Invalid authorization format")
 	}
 
 	return strings.TrimPrefix(authHeader, "Bearer "), nil

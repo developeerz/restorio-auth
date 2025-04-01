@@ -10,9 +10,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// seconds
+const (
+	AccessMaxAge  = 60 * 60
+	RefreshMaxAge = 60 * 60 * 24 * 7
+)
+
 type Jwt struct {
-	Access  string `json:"access"`
-	Refresh string `json:"refresh"`
+	Access  string
+	Refresh string
 }
 
 func genAccessToken(userId string, auths []string) *jwt.MapClaims {
@@ -20,7 +26,7 @@ func genAccessToken(userId string, auths []string) *jwt.MapClaims {
 		"sub":   userId,
 		"roles": auths,
 		"iat":   jwt.NewNumericDate(time.Now()),
-		"exp":   jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		"exp":   jwt.NewNumericDate(time.Now().Add(time.Second * AccessMaxAge)),
 	}
 }
 
@@ -28,7 +34,7 @@ func genRefreshToken(userId string) *jwt.MapClaims {
 	return &jwt.MapClaims{
 		"sub": userId,
 		"iat": jwt.NewNumericDate(time.Now()),
-		"exp": jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
+		"exp": jwt.NewNumericDate(time.Now().Add(time.Second * RefreshMaxAge)),
 	}
 }
 
@@ -68,7 +74,7 @@ func ParseRefresh(refreshToken string) (int64, error) {
 	return userId, nil
 }
 
-func ParseAccess(accessToken string) (string, []string, error) {
+func GetAccess(accessToken string) (string, []string, error) {
 	token, err := getValidToken(accessToken, config.ConfigService.Access)
 	if err != nil {
 		return "", nil, errors.New("invalid token")

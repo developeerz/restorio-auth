@@ -16,3 +16,7 @@ type SignInRequest struct {
 	Telegram string `json:"telegram"`
 	Password string `json:"password"`
 }
+
+type JwtAccess struct {
+	Access string `json:"access"`
+}

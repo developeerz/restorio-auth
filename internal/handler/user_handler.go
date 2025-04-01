@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/developeerz/restorio-auth/internal/dto"
+	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/developeerz/restorio-auth/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -22,13 +23,13 @@ func (handler *UserHandler) SignUp(ctx *gin.Context) {
 
 	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, dto.Error{Message: "Cannot parse json"})
+		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	status, msg, err := handler.userService.SignUp(&req)
+	status, err := handler.userService.SignUp(&req)
 	if err != nil || status != http.StatusOK {
-		ctx.JSON(status, msg)
+		ctx.AbortWithStatus(status)
 		return
 	}
 
@@ -41,13 +42,13 @@ func (handler *UserHandler) Verification(ctx *gin.Context) {
 
 	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, dto.Error{Message: "Cannot parse json"})
+		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	status, msg, err := handler.userService.Verify(&req)
+	status, err := handler.userService.Verify(&req)
 	if err != nil {
-		ctx.JSON(status, msg)
+		ctx.AbortWithStatus(status)
 		return
 	}
 
@@ -60,15 +61,16 @@ func (handler *UserHandler) SignIn(ctx *gin.Context) {
 
 	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, dto.Error{Message: "Cannot parse json"})
+		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	status, jwt, msg, err := handler.userService.SignIn(&req)
+	status, access, refresh, err := handler.userService.SignIn(&req)
 	if err != nil || status != http.StatusOK {
-		ctx.JSON(status, msg)
+		ctx.AbortWithStatus(status)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, jwt)
+	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/auth/refresh", "", false, true)
+	ctx.JSON(http.StatusOK, access)
 }

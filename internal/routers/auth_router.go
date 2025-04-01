@@ -8,6 +8,6 @@ import (
 func NewAuthRouter(router *gin.Engine, authHandler *handler.AuthHandler) {
 	authapi := router.Group("/api/auth")
 
-	authapi.GET("/check-acccess", authHandler.CheckAccess)
+	authapi.GET("/check-access", authHandler.CheckAccess)
 	authapi.GET("/refresh", authHandler.Refresh)
 }
