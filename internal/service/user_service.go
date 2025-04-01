@@ -26,85 +26,85 @@ func NewUserService(userRepository repository.UserRepository) *UserService {
 	return &UserService{userRepository: userRepository}
 }
 
-func (userService *UserService) SignUp(req *dto.SignUpRequest) (int, *dto.Error, error) {
+func (userService *UserService) SignUp(req *dto.SignUpRequest) (int, error) {
 	var err error
 	var user *models.User
 
 	user, err = mapper.SignUpToUser(req)
 	if err != nil {
-		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
+		return http.StatusInternalServerError, err
 	}
 
 	err = userService.userRepository.CreateUser(user)
 	if err != nil {
-		return http.StatusConflict, &dto.Error{Message: "User already signed up"}, err
+		return http.StatusConflict, err
 	}
 
 	userCode := models.UserCode{Telegram: user.Telegram, Code: rand.Intn(rangeVal) + minVal}
 	err = userService.userRepository.CreateVerificationCode(&userCode)
 	if err != nil {
-		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
+		return http.StatusInternalServerError, err
 	}
 
-	return http.StatusOK, nil, nil
+	return http.StatusOK, nil
 }
 
-func (userService *UserService) Verify(req *dto.VerificationRequest) (int, *dto.Error, error) {
+func (userService *UserService) Verify(req *dto.VerificationRequest) (int, error) {
 	var err error
 
 	userCode, _ := mapper.VerificationToUserCode(req)
 	userId, err := userService.userRepository.CheckVerificationCode(userCode)
 	if err != nil {
-		return http.StatusUnauthorized, &dto.Error{Message: "Wrong code or telegram"}, err
+		return http.StatusUnauthorized, err
 	}
 
 	err = userService.userRepository.DeleteVerificationCode(userCode)
 	if err != nil {
-		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
+		return http.StatusInternalServerError, err
 	}
 
 	err = userService.userRepository.VerifyUser(userId)
 	if err != nil {
-		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
+		return http.StatusInternalServerError, err
 	}
 
 	userAuth := &models.UserAuth{UserId: userId, AuthId: models.USER}
 	err = userService.userRepository.SetUserAuth(userAuth)
 	if err != nil {
-		return http.StatusInternalServerError, &dto.Error{Message: "Internal error"}, err
+		return http.StatusInternalServerError, err
 	}
 
-	return http.StatusOK, nil, nil
+	return http.StatusOK, nil
 }
 
-func (userService *UserService) SignIn(req *dto.SignInRequest) (int, *jwt.Jwt, *dto.Error, error) {
+func (userService *UserService) SignIn(req *dto.SignInRequest) (int, *dto.JwtAccess, string, error) {
 	var err error
 	var user *models.User
 
 	req.Telegram, _ = strings.CutPrefix(req.Telegram, "@")
 	user, err = userService.userRepository.FindByTelegram(req.Telegram)
 	if err != nil {
-		return http.StatusNotFound, nil, &dto.Error{Message: "User not Found"}, err
+		return http.StatusNotFound, nil, "", err
 	}
 
 	if !user.Verified {
-		return http.StatusUnauthorized, nil, &dto.Error{Message: "User not verified"}, nil
+		return http.StatusUnauthorized, nil, "", nil
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return http.StatusUnauthorized, nil, &dto.Error{Message: "Wrong Password"}, err
+		return http.StatusUnauthorized, nil, "", err
 	}
 
 	userAuths, err := userService.userRepository.GetUserAuths(user.ID)
 	if err != nil {
-		return http.StatusInternalServerError, nil, &dto.Error{Message: "Internal error"}, err
+		return http.StatusInternalServerError, nil, "", err
 	}
 
-	jwt, err := jwt.NewJwt(mapper.UserAuthToIdAndAuth(userAuths))
+	jwts, err := jwt.NewJwt(mapper.UserAuthToIdAndAuth(userAuths))
 	if err != nil {
-		return http.StatusInternalServerError, nil, &dto.Error{Message: "Internal error"}, err
+		return http.StatusInternalServerError, nil, "", err
 	}
 
-	return http.StatusOK, jwt, nil, nil
+	return http.StatusOK, mapper.JwtToAccess(jwts), jwts.Refresh, nil
 }
