@@ -1,6 +1,7 @@
-package service
+package user
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -8,7 +9,6 @@ import (
 	"github.com/developeerz/restorio-auth/internal/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/developeerz/restorio-auth/internal/models"
-	"github.com/developeerz/restorio-auth/internal/repository"
 	"github.com/developeerz/restorio-auth/internal/service/mapper"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -19,10 +19,10 @@ const (
 )
 
 type UserService struct {
-	userRepository repository.UserRepository
+	userRepository UserRepository
 }
 
-func NewUserService(userRepository repository.UserRepository) *UserService {
+func NewUserService(userRepository UserRepository) *UserService {
 	return &UserService{userRepository: userRepository}
 }
 
@@ -98,7 +98,7 @@ func (userService *UserService) SignIn(req *dto.SignInRequest) (int, *dto.JwtAcc
 
 	userAuths, err := userService.userRepository.GetUserAuths(user.ID)
 	if err != nil {
-		return http.StatusInternalServerError, nil, "", err
+		return http.StatusInternalServerError, nil, "", fmt.Errorf("GetUserAuths(%d): %w", user.ID, err)
 	}
 
 	jwts, err := jwt.NewJwt(mapper.UserAuthToIdAndAuth(userAuths))

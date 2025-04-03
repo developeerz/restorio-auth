@@ -5,15 +5,15 @@ import (
 
 	"github.com/developeerz/restorio-auth/internal/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
-	"github.com/developeerz/restorio-auth/internal/service"
+	"github.com/developeerz/restorio-auth/internal/service/user"
 	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	userService service.UserService
+	userService user.UserService
 }
 
-func NewUserHandler(userService *service.UserService) *UserHandler {
+func NewUserHandler(userService *user.UserService) *UserHandler {
 	return &UserHandler{userService: *userService}
 }
 

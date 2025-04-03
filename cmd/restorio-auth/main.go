@@ -6,7 +6,8 @@ import (
 	"github.com/developeerz/restorio-auth/internal/handler"
 	"github.com/developeerz/restorio-auth/internal/repository"
 	"github.com/developeerz/restorio-auth/internal/routers"
-	"github.com/developeerz/restorio-auth/internal/service"
+	"github.com/developeerz/restorio-auth/internal/service/auth"
+	"github.com/developeerz/restorio-auth/internal/service/user"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,12 +15,12 @@ func main() {
 	config.LoadConfig()
 	database.Connect()
 
-	userRepository := repository.NewUserRipository(database.DB)
+	repository := repository.NewRepository(database.DB)
 
-	userService := service.NewUserService(userRepository)
+	userService := user.NewUserService(repository)
 	userHandler := handler.NewUserHandler(userService)
 
-	authService := service.NewAuthService(userRepository)
+	authService := auth.NewAuthService(repository)
 	authHandler := handler.NewAuthHandler(authService)
 
 	router := gin.Default()

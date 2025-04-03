@@ -1,18 +1,17 @@
-package service
+package auth
 
 import (
 	"github.com/developeerz/restorio-auth/internal/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
-	"github.com/developeerz/restorio-auth/internal/repository"
 	"github.com/developeerz/restorio-auth/internal/service/mapper"
 )
 
 type AuthService struct {
-	userRepository repository.UserRepository
+	authRepository AuthRepository
 }
 
-func NewAuthService(userRepository repository.UserRepository) *AuthService {
-	return &AuthService{userRepository: userRepository}
+func NewAuthService(authRepository AuthRepository) *AuthService {
+	return &AuthService{authRepository: authRepository}
 }
 
 func (authService *AuthService) Refresh(refreshToken string) (*dto.JwtAccess, string, error) {
@@ -21,7 +20,7 @@ func (authService *AuthService) Refresh(refreshToken string) (*dto.JwtAccess, st
 		return nil, "", err
 	}
 
-	userAuths, err := authService.userRepository.GetUserAuths(userId)
+	userAuths, err := authService.authRepository.GetUserAuths(userId)
 	if err != nil {
 		return nil, "", err
 	}
