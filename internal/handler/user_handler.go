@@ -55,9 +55,9 @@ func (handler *UserHandler) Verification(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-func (handler *UserHandler) SignIn(ctx *gin.Context) {
+func (handler *UserHandler) Login(ctx *gin.Context) {
 	var err error
-	var req dto.SignInRequest
+	var req dto.LoginRequest
 
 	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
@@ -65,7 +65,7 @@ func (handler *UserHandler) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	status, access, refresh, err := handler.userService.SignIn(&req)
+	status, access, refresh, err := handler.userService.Login(&req)
 	if err != nil || status != http.StatusOK {
 		ctx.AbortWithStatus(status)
 		return
