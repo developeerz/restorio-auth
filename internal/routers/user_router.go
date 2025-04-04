@@ -9,6 +9,6 @@ func NewUserRouter(router *gin.Engine, userHandler *handler.UserHandler) {
 	userapi := router.Group("/api/user")
 
 	userapi.POST("/sign-up", userHandler.SignUp)
-	userapi.POST("/sign-in", userHandler.SignIn)
+	userapi.POST("/login", userHandler.Login)
 	userapi.POST("/verify", userHandler.Verification)
 }

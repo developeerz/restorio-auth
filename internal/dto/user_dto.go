@@ -12,7 +12,7 @@ type VerificationRequest struct {
 	Telegram string `json:"telegram"`
 }
 
-type SignInRequest struct {
+type LoginRequest struct {
 	Telegram string `json:"telegram"`
 	Password string `json:"password"`
 }

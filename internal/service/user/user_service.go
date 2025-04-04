@@ -77,7 +77,7 @@ func (userService *UserService) Verify(req *dto.VerificationRequest) (int, error
 	return http.StatusOK, nil
 }
 
-func (userService *UserService) SignIn(req *dto.SignInRequest) (int, *dto.JwtAccess, string, error) {
+func (userService *UserService) Login(req *dto.LoginRequest) (int, *dto.JwtAccess, string, error) {
 	var err error
 	var user *models.User
 
