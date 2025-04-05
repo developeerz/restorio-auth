@@ -66,7 +66,7 @@ func (handler *UserHandler) Login(ctx *gin.Context) {
 	}
 
 	status, access, refresh, err := handler.userService.Login(&req)
-	if err != nil || status != http.StatusOK {
+	if err != nil {
 		ctx.AbortWithStatus(status)
 		return
 	}

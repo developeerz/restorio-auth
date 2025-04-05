@@ -88,7 +88,7 @@ func (userService *UserService) Login(req *dto.LoginRequest) (int, *dto.JwtAcces
 	}
 
 	if !user.Verified {
-		return http.StatusUnauthorized, nil, "", nil
+		return http.StatusUnauthorized, nil, "", fmt.Errorf("GetUserAuths(%d): not verified", user.ID)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))

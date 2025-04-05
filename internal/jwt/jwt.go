@@ -60,6 +60,9 @@ func NewJwt(userId int64, auths []string) (*Jwt, error) {
 
 func ParseRefresh(refreshToken string) (int64, error) {
 	token, err := getValidToken(refreshToken, config.ConfigService.Refresh)
+	if err != nil {
+		return 0, err
+	}
 
 	strUserId, err := token.Claims.GetSubject()
 	if err != nil {
