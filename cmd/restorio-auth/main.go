@@ -4,7 +4,6 @@ import (
 	"github.com/developeerz/restorio-auth/config"
 	"github.com/developeerz/restorio-auth/internal/database"
 	"github.com/developeerz/restorio-auth/internal/handler"
-	"github.com/developeerz/restorio-auth/internal/middleware"
 	"github.com/developeerz/restorio-auth/internal/repository"
 	"github.com/developeerz/restorio-auth/internal/routers"
 	"github.com/developeerz/restorio-auth/internal/service/auth"
@@ -25,9 +24,6 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService)
 
 	router := gin.Default()
-
-	middleware.ConfigureCORS(router)
-
 	routers.NewUserRouter(router, userHandler)
 	routers.NewAuthRouter(router, authHandler)
 
