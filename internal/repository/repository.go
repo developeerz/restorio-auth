@@ -16,6 +16,7 @@ func NewRepository(db *gorm.DB) *Repository {
 func (r *Repository) FindByTelegram(telegram string) (*models.User, error) {
 	var user models.User
 	result := r.db.Where("telegram = ?", telegram).First(&user)
+
 	return &user, result.Error
 }
 
@@ -27,13 +28,14 @@ func (r *Repository) CreateUser(user *models.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *Repository) VerifyUser(userId int64) error {
-	return r.db.Table("users").Where("id = ?", userId).Update("verified", true).Error
+func (r *Repository) VerifyUser(userID int64) error {
+	return r.db.Table("users").Where("id = ?", userID).Update("verified", true).Error
 }
 
-func (r *Repository) GetUserAuths(userId int64) ([]models.UserAuth, error) {
+func (r *Repository) GetUserAuths(userID int64) ([]models.UserAuth, error) {
 	var userAuths []models.UserAuth
-	result := r.db.Table("user_auths").Where("user_id = ?", userId).Find(&userAuths)
+	result := r.db.Table("user_auths").Where("user_id = ?", userID).Find(&userAuths)
+
 	return userAuths, result.Error
 }
 
@@ -55,6 +57,7 @@ func (r *Repository) CheckVerificationCode(userCode *models.UserCode) (int64, er
 		Joins("JOIN user_codes uc ON uc.telegram = us.telegram").
 		Where("uc.telegram = ? AND uc.code = ?", userCode.Telegram, userCode.Code).
 		First(&user)
+
 	return user.ID, result.Error
 }
 

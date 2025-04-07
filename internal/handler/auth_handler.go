@@ -11,10 +11,10 @@ import (
 )
 
 type AuthHandler struct {
-	authService *auth.AuthService
+	authService *auth.Service
 }
 
-func NewAuthHandler(authService *auth.AuthService) *AuthHandler {
+func NewAuthHandler(authService *auth.Service) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
@@ -31,7 +31,7 @@ func (authHandler *AuthHandler) Refresh(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/auth/refresh", "", false, true)
+	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/auth-service/auth/refresh", "", false, true)
 	ctx.JSON(http.StatusOK, access)
 }
 
@@ -62,11 +62,11 @@ func (authHandler *AuthHandler) CheckAccess(ctx *gin.Context) {
 
 func extractToken(authHeader string) (string, error) {
 	if authHeader == "" {
-		return "", fmt.Errorf("Empty auth header")
+		return "", fmt.Errorf("empty auth header")
 	}
 
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return "", fmt.Errorf("Invalid authorization format")
+		return "", fmt.Errorf("invalid authorization format")
 	}
 
 	return strings.TrimPrefix(authHeader, "Bearer "), nil

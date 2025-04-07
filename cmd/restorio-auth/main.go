@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/developeerz/restorio-auth/config"
 	"github.com/developeerz/restorio-auth/internal/database"
 	"github.com/developeerz/restorio-auth/internal/handler"
@@ -17,15 +19,18 @@ func main() {
 
 	repository := repository.NewRepository(database.DB)
 
-	userService := user.NewUserService(repository)
+	userService := user.NewService(repository)
 	userHandler := handler.NewUserHandler(userService)
 
-	authService := auth.NewAuthService(repository)
+	authService := auth.NewService(repository)
 	authHandler := handler.NewAuthHandler(authService)
 
 	router := gin.Default()
 	routers.NewUserRouter(router, userHandler)
 	routers.NewAuthRouter(router, authHandler)
 
-	router.Run(":8081")
+	err := router.Run(":8081")
+	if err != nil {
+		log.Fatal("main: ", err)
+	}
 }

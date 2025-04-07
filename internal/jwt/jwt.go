@@ -10,7 +10,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// seconds
 const (
 	AccessMaxAge  = 60 * 60
 	RefreshMaxAge = 60 * 60 * 24 * 7
@@ -21,32 +20,33 @@ type Jwt struct {
 	Refresh string
 }
 
-func genAccessToken(userId string, auths []string) *jwt.MapClaims {
+func genAccessToken(userID string, auths []string) *jwt.MapClaims {
 	return &jwt.MapClaims{
-		"sub":   userId,
+		"sub":   userID,
 		"roles": auths,
 		"iat":   jwt.NewNumericDate(time.Now()),
 		"exp":   jwt.NewNumericDate(time.Now().Add(time.Second * AccessMaxAge)),
 	}
 }
 
-func genRefreshToken(userId string) *jwt.MapClaims {
+func genRefreshToken(userID string) *jwt.MapClaims {
 	return &jwt.MapClaims{
-		"sub": userId,
+		"sub": userID,
 		"iat": jwt.NewNumericDate(time.Now()),
 		"exp": jwt.NewNumericDate(time.Now().Add(time.Second * RefreshMaxAge)),
 	}
 }
 
-func NewJwt(userId int64, auths []string) (*Jwt, error) {
-	strUserId := strconv.FormatInt(userId, 10)
-	access := jwt.NewWithClaims(jwt.SigningMethodHS256, genAccessToken(strUserId, auths))
-	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, genRefreshToken(strUserId))
+func NewJwt(userID int64, auths []string) (*Jwt, error) {
+	strUserID := strconv.FormatInt(userID, 10)
+	access := jwt.NewWithClaims(jwt.SigningMethodHS256, genAccessToken(strUserID, auths))
+	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, genRefreshToken(strUserID))
 
 	a, err := access.SignedString([]byte(config.ConfigService.Access))
 	if err != nil {
 		return nil, err
 	}
+
 	r, err := refresh.SignedString([]byte(config.ConfigService.Refresh))
 	if err != nil {
 		return nil, err
@@ -64,17 +64,17 @@ func ParseRefresh(refreshToken string) (int64, error) {
 		return 0, err
 	}
 
-	strUserId, err := token.Claims.GetSubject()
+	strUserID, err := token.Claims.GetSubject()
 	if err != nil {
 		return 0, err
 	}
 
-	userId, err := strconv.ParseInt(strUserId, 10, 64)
+	userID, err := strconv.ParseInt(strUserID, 10, 64)
 	if err != nil {
 		return 0, err
 	}
 
-	return userId, nil
+	return userID, nil
 }
 
 func GetAccess(accessToken string) (string, []string, error) {
@@ -83,31 +83,41 @@ func GetAccess(accessToken string) (string, []string, error) {
 		return "", nil, errors.New("invalid token")
 	}
 
-	strUserId, err := token.Claims.GetSubject()
+	strUserID, err := token.Claims.GetSubject()
 	if err != nil {
 		return "", nil, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", nil, errors.New("invalid claims")
+		return "", nil, errors.New("token.Claims: does not provide <jwt.MapClaims> value")
 	}
 
 	roles, ok := claims["roles"].([]interface{})
 	if !ok {
-		return "", nil, errors.New("invalid roles")
+		return "", nil, fmt.Errorf("claims[\"roles\"]: does not provide <[]interface{}> value")
 	}
 
-	var roleStrings []string
-	for _, role := range roles {
-		roleStrings = append(roleStrings, role.(string))
+	roleStrings := make([]string, len(roles))
+
+	for i, role := range roles {
+		strRole, ok := role.(string)
+
+		if !ok {
+			return "", nil, fmt.Errorf("role: does not provide <string> value")
+		}
+		roleStrings[i] = strRole
 	}
 
-	return strUserId, roleStrings, nil
+	return strUserID, roleStrings, nil
 }
 
 func getValidToken(token string, key string) (*jwt.Token, error) {
 	jwt, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+
 		return []byte(key), nil
 	})
 
@@ -116,11 +126,11 @@ func getValidToken(token string, key string) (*jwt.Token, error) {
 	}
 
 	if !jwt.Valid {
-		return nil, fmt.Errorf("Not valid token")
+		return nil, fmt.Errorf("not valid token")
 	}
 
 	if expired(jwt) {
-		return nil, fmt.Errorf("Token is expired")
+		return nil, fmt.Errorf("token is expired")
 	}
 
 	return jwt, nil
@@ -132,5 +142,5 @@ func expired(token *jwt.Token) bool {
 		return true
 	}
 
-	return date.Time.Compare(time.Now()) == -1
+	return date.Compare(time.Now()) == -1
 }
