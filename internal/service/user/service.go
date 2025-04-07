@@ -18,15 +18,15 @@ const (
 	rangeVal int = 8999999
 )
 
-type UserService struct {
-	userRepository UserRepository
+type Service struct {
+	userRepository Repository
 }
 
-func NewUserService(userRepository UserRepository) *UserService {
-	return &UserService{userRepository: userRepository}
+func NewService(userRepository Repository) *Service {
+	return &Service{userRepository: userRepository}
 }
 
-func (userService *UserService) SignUp(req *dto.SignUpRequest) (int, error) {
+func (userService *Service) SignUp(req *dto.SignUpRequest) (int, error) {
 	var err error
 	var user *models.User
 
@@ -41,6 +41,7 @@ func (userService *UserService) SignUp(req *dto.SignUpRequest) (int, error) {
 	}
 
 	userCode := models.UserCode{Telegram: user.Telegram, Code: rand.Intn(rangeVal) + minVal}
+
 	err = userService.userRepository.CreateVerificationCode(&userCode)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -49,11 +50,15 @@ func (userService *UserService) SignUp(req *dto.SignUpRequest) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (userService *UserService) Verify(req *dto.VerificationRequest) (int, error) {
+func (userService *Service) Verify(req *dto.VerificationRequest) (int, error) {
 	var err error
 
-	userCode, _ := mapper.VerificationToUserCode(req)
-	userId, err := userService.userRepository.CheckVerificationCode(userCode)
+	userCode, err := mapper.VerificationToUserCode(req)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	userID, err := userService.userRepository.CheckVerificationCode(userCode)
 	if err != nil {
 		return http.StatusUnauthorized, err
 	}
@@ -63,12 +68,13 @@ func (userService *UserService) Verify(req *dto.VerificationRequest) (int, error
 		return http.StatusInternalServerError, err
 	}
 
-	err = userService.userRepository.VerifyUser(userId)
+	err = userService.userRepository.VerifyUser(userID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	userAuth := &models.UserAuth{UserId: userId, AuthId: models.USER}
+	userAuth := &models.UserAuth{UserID: userID, AuthID: models.USER}
+
 	err = userService.userRepository.SetUserAuth(userAuth)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -77,11 +83,12 @@ func (userService *UserService) Verify(req *dto.VerificationRequest) (int, error
 	return http.StatusOK, nil
 }
 
-func (userService *UserService) Login(req *dto.LoginRequest) (int, *dto.JwtAccess, string, error) {
+func (userService *Service) Login(req *dto.LoginRequest) (int, *dto.JwtAccess, string, error) {
 	var err error
 	var user *models.User
 
 	req.Telegram, _ = strings.CutPrefix(req.Telegram, "@")
+
 	user, err = userService.userRepository.FindByTelegram(req.Telegram)
 	if err != nil {
 		return http.StatusNotFound, nil, "", err
@@ -101,7 +108,7 @@ func (userService *UserService) Login(req *dto.LoginRequest) (int, *dto.JwtAcces
 		return http.StatusInternalServerError, nil, "", fmt.Errorf("GetUserAuths(%d): %w", user.ID, err)
 	}
 
-	jwts, err := jwt.NewJwt(mapper.UserAuthToIdAndAuth(userAuths))
+	jwts, err := jwt.NewJwt(mapper.UserAuthToIDAndAuth(userAuths))
 	if err != nil {
 		return http.StatusInternalServerError, nil, "", err
 	}

@@ -10,10 +10,10 @@ import (
 )
 
 type UserHandler struct {
-	userService user.UserService
+	userService user.Service
 }
 
-func NewUserHandler(userService *user.UserService) *UserHandler {
+func NewUserHandler(userService *user.Service) *UserHandler {
 	return &UserHandler{userService: *userService}
 }
 
@@ -71,6 +71,6 @@ func (handler *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/auth/refresh", "", false, true)
+	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/auth-service/auth/refresh", "", false, true)
 	ctx.JSON(http.StatusOK, access)
 }

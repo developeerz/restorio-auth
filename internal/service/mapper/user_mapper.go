@@ -12,6 +12,7 @@ import (
 
 func SignUpToUser(signUp *dto.SignUpRequest) (*models.User, error) {
 	signUp.Telegram, _ = strings.CutPrefix(signUp.Telegram, "@")
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signUp.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -36,12 +37,12 @@ func VerificationToUserCode(v *dto.VerificationRequest) (*models.UserCode, error
 	}, nil
 }
 
-func UserAuthToIdAndAuth(userAuths []models.UserAuth) (int64, []string) {
-	id := userAuths[0].UserId
+func UserAuthToIDAndAuth(userAuths []models.UserAuth) (int64, []string) {
+	id := userAuths[0].UserID
 
-	var auths []string
-	for _, v := range userAuths {
-		auths = append(auths, string(v.AuthId))
+	auths := make([]string, len(userAuths))
+	for i, v := range userAuths {
+		auths[i] = string(v.AuthID)
 	}
 
 	return id, auths

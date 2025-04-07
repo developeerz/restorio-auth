@@ -13,6 +13,6 @@ type Authority struct {
 }
 
 type UserAuth struct {
-	UserId int64 `gorm:"primaryKey"`
-	AuthId Auth  `gorm:"primaryKey"`
+	UserID int64 `gorm:"primaryKey"`
+	AuthID Auth  `gorm:"primaryKey"`
 }

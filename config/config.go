@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -16,7 +17,8 @@ type Config struct {
 var ConfigService Config
 
 func LoadConfig() {
-	godotenv.Load()
+	err := godotenv.Load()
+	log.Println("LoadConfig: ", err)
 
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",

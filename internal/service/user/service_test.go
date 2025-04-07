@@ -14,9 +14,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	telegram          = "telegram"
+	decryptedPassword = "password"
+)
+
 func TestSignUpSuccess(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
+
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
 
 	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(nil)
 	mockUserRepo.On("CreateVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(nil)
@@ -36,8 +43,10 @@ func TestSignUpSuccess(t *testing.T) {
 }
 
 func TestSignUpDublicatedUser(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
+
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
 
 	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(errors.New("Dublicate user"))
 
@@ -56,11 +65,14 @@ func TestSignUpDublicatedUser(t *testing.T) {
 }
 
 func TestSignUpDublicatedVerificationCode(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
+
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
 
 	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(nil)
-	mockUserRepo.On("CreateVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(errors.New("Dublicate verification code"))
+	mockUserRepo.On("CreateVerificationCode", mock.AnythingOfType("*models.UserCode")).
+		Return(errors.New("Dublicate verification code"))
 
 	req := &dto.SignUpRequest{
 		Firstname: "firstname",
@@ -77,14 +89,16 @@ func TestSignUpDublicatedVerificationCode(t *testing.T) {
 }
 
 func TestVerifySuccess(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	var userId int64 = 1
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
 
-	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userId, nil)
+	var userID int64 = 1
+
+	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userID, nil)
 	mockUserRepo.On("DeleteVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(nil)
-	mockUserRepo.On("VerifyUser", userId).Return(nil)
+	mockUserRepo.On("VerifyUser", userID).Return(nil)
 	mockUserRepo.On("SetUserAuth", mock.AnythingOfType("*models.UserAuth")).Return(nil)
 
 	req := &dto.VerificationRequest{Code: 111000, Telegram: "@telegram"}
@@ -97,10 +111,13 @@ func TestVerifySuccess(t *testing.T) {
 }
 
 func TestVerifyWrongVerificationCode(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(int64(0), errors.New("Wrong verification code"))
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
+
+	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).
+		Return(int64(0), errors.New("Wrong verification code"))
 
 	req := &dto.VerificationRequest{Code: 111000, Telegram: "@telegram"}
 	code, err := service.Verify(req)
@@ -112,13 +129,16 @@ func TestVerifyWrongVerificationCode(t *testing.T) {
 }
 
 func TestVerifyDeleteVerificationCodeError(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	var userId int64 = 1
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
 
-	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userId, nil)
-	mockUserRepo.On("DeleteVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(errors.New("Cannot delete verification code"))
+	var userID int64 = 1
+
+	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userID, nil)
+	mockUserRepo.On("DeleteVerificationCode", mock.AnythingOfType("*models.UserCode")).
+		Return(errors.New("Cannot delete verification code"))
 
 	req := &dto.VerificationRequest{Code: 111000, Telegram: "@telegram"}
 	code, err := service.Verify(req)
@@ -130,14 +150,16 @@ func TestVerifyDeleteVerificationCodeError(t *testing.T) {
 }
 
 func TestVerifyVerifyUserError(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	var userId int64 = 1
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
 
-	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userId, nil)
+	var userID int64 = 1
+
+	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userID, nil)
 	mockUserRepo.On("DeleteVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(nil)
-	mockUserRepo.On("VerifyUser", userId).Return(errors.New("Verification error"))
+	mockUserRepo.On("VerifyUser", userID).Return(errors.New("Verification error"))
 
 	req := &dto.VerificationRequest{Code: 111000, Telegram: "@telegram"}
 	code, err := service.Verify(req)
@@ -149,14 +171,16 @@ func TestVerifyVerifyUserError(t *testing.T) {
 }
 
 func TestVerifySetUserAuthError(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	var userId int64 = 1
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
 
-	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userId, nil)
+	var userID int64 = 1
+
+	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userID, nil)
 	mockUserRepo.On("DeleteVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(nil)
-	mockUserRepo.On("VerifyUser", userId).Return(nil)
+	mockUserRepo.On("VerifyUser", userID).Return(nil)
 	mockUserRepo.On("SetUserAuth", mock.AnythingOfType("*models.UserAuth")).Return(errors.New("Cannot create user auth"))
 
 	req := &dto.VerificationRequest{Code: 111000, Telegram: "@telegram"}
@@ -169,15 +193,17 @@ func TestVerifySetUserAuthError(t *testing.T) {
 }
 
 func TestLoginSuccess(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	telegram := "telegram"
-	decryptedPassword := "password"
-	bpassword, _ := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
+
+	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	assert.NoError(t, err)
+
 	password := string(bpassword)
 	user := &models.User{ID: 1, Telegram: telegram, Password: password, Verified: true}
-	userAuths := []models.UserAuth{{UserId: user.ID, AuthId: models.USER}}
+	userAuths := []models.UserAuth{{UserID: user.ID, AuthID: models.USER}}
 
 	mockUserRepo.On("FindByTelegram", telegram).Return(user, nil)
 	mockUserRepo.On("GetUserAuths", user.ID).Return(userAuths, nil)
@@ -192,11 +218,10 @@ func TestLoginSuccess(t *testing.T) {
 }
 
 func TestLoginFindByTelegramError(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	telegram := "telegram"
-	decryptedPassword := "password"
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
 
 	mockUserRepo.On("FindByTelegram", telegram).Return(nil, errors.New("Cannot find user"))
 
@@ -210,12 +235,14 @@ func TestLoginFindByTelegramError(t *testing.T) {
 }
 
 func TestLoginNotVerified(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	telegram := "telegram"
-	decryptedPassword := "password"
-	bpassword, _ := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
+
+	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	assert.NoError(t, err)
+
 	password := string(bpassword)
 	user := &models.User{ID: 1, Telegram: telegram, Password: password, Verified: false}
 
@@ -231,12 +258,14 @@ func TestLoginNotVerified(t *testing.T) {
 }
 
 func TestLoginWrongPassword(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	telegram := "telegram"
-	decryptedPassword := "password"
-	bpassword, _ := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
+
+	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	assert.NoError(t, err)
+
 	password := string(bpassword)
 	user := &models.User{ID: 1, Telegram: telegram, Password: password, Verified: true}
 
@@ -252,12 +281,14 @@ func TestLoginWrongPassword(t *testing.T) {
 }
 
 func TestLoginUserAuthError(t *testing.T) {
-	mockUserRepo := mocks.NewUserRepository(t)
-	service := user.NewUserService(mockUserRepo)
+	t.Parallel()
 
-	telegram := "telegram"
-	decryptedPassword := "password"
-	bpassword, _ := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	mockUserRepo := mocks.NewRepository(t)
+	service := user.NewService(mockUserRepo)
+
+	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	assert.NoError(t, err)
+
 	password := string(bpassword)
 	user := &models.User{ID: 1, Telegram: telegram, Password: password, Verified: true}
 
