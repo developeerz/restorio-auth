@@ -6,7 +6,7 @@ import (
 )
 
 func NewAuthRouter(router *gin.Engine, authHandler *handler.AuthHandler) {
-	authapi := router.Group("/api/auth")
+	authapi := router.Group("/api/auth-service/auth")
 
 	authapi.GET("/check-access", authHandler.CheckAccess)
 	authapi.GET("/refresh", authHandler.Refresh)

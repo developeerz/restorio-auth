@@ -6,7 +6,7 @@ import (
 )
 
 func NewUserRouter(router *gin.Engine, userHandler *handler.UserHandler) {
-	userapi := router.Group("/api/user")
+	userapi := router.Group("/api/auth-service/user")
 
 	userapi.POST("/sign-up", userHandler.SignUp)
 	userapi.POST("/login", userHandler.Login)
