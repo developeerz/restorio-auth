@@ -31,6 +31,6 @@ func main() {
 
 	err := router.Run(":8081")
 	if err != nil {
-		log.Fatal("main: ", err)
+		log.Fatalf("main: %v", err)
 	}
 }
