@@ -142,29 +142,29 @@ func (_m *Repository) FindByTelegram(telegram string) (*models.User, error) {
 	return r0, r1
 }
 
-// GetUserAuths provides a mock function with given fields: userId
-func (_m *Repository) GetUserAuths(userId int64) ([]models.UserAuth, error) {
-	ret := _m.Called(userId)
+// FindByTelegramWithAuths provides a mock function with given fields: telegram
+func (_m *Repository) FindByTelegramWithAuths(telegram string) (*models.UserWithAuths, error) {
+	ret := _m.Called(telegram)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetUserAuths")
+		panic("no return value specified for FindByTelegramWithAuths")
 	}
 
-	var r0 []models.UserAuth
+	var r0 *models.UserWithAuths
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64) ([]models.UserAuth, error)); ok {
-		return rf(userId)
+	if rf, ok := ret.Get(0).(func(string) (*models.UserWithAuths, error)); ok {
+		return rf(telegram)
 	}
-	if rf, ok := ret.Get(0).(func(int64) []models.UserAuth); ok {
-		r0 = rf(userId)
+	if rf, ok := ret.Get(0).(func(string) *models.UserWithAuths); ok {
+		r0 = rf(telegram)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.UserAuth)
+			r0 = ret.Get(0).(*models.UserWithAuths)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(userId)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(telegram)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -201,24 +201,6 @@ func (_m *Repository) SetUserAuth(userAuth *models.UserAuth) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*models.UserAuth) error); ok {
 		r0 = rf(userAuth)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// VerifyUser provides a mock function with given fields: userId
-func (_m *Repository) VerifyUser(userId int64) error {
-	ret := _m.Called(userId)
-
-	if len(ret) == 0 {
-		panic("no return value specified for VerifyUser")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(int64) error); ok {
-		r0 = rf(userId)
 	} else {
 		r0 = ret.Error(0)
 	}

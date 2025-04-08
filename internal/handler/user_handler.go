@@ -71,6 +71,6 @@ func (handler *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/auth-service/auth/refresh", "", false, true)
+	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/web-gateway/auth/refresh", "", false, true)
 	ctx.JSON(http.StatusOK, access)
 }

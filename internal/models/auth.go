@@ -16,3 +16,7 @@ type UserAuth struct {
 	UserID int64 `gorm:"primaryKey"`
 	AuthID Auth  `gorm:"primaryKey"`
 }
+
+func (Authority) TableName() string {
+	return "auths"
+}

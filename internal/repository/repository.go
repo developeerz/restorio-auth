@@ -20,6 +20,17 @@ func (r *Repository) FindByTelegram(telegram string) (*models.User, error) {
 	return &user, result.Error
 }
 
+func (r *Repository) FindByTelegramWithAuths(telegram string) (*models.UserWithAuths, error) {
+	var user models.UserWithAuths
+	result := r.db.
+		Table("users u").
+		Preload("Auths").
+		Where("telegram = ?", telegram).
+		First(&user)
+
+	return &user, result.Error
+}
+
 func (r *Repository) SaveUser(user *models.User) error {
 	return r.db.Save(user).Error
 }
@@ -29,12 +40,18 @@ func (r *Repository) CreateUser(user *models.User) error {
 }
 
 func (r *Repository) VerifyUser(userID int64) error {
-	return r.db.Table("users").Where("id = ?", userID).Update("verified", true).Error
+	return r.db.
+		Table("users").
+		Where("id = ?", userID).
+		Update("verified", true).Error
 }
 
 func (r *Repository) GetUserAuths(userID int64) ([]models.UserAuth, error) {
 	var userAuths []models.UserAuth
-	result := r.db.Table("user_auths").Where("user_id = ?", userID).Find(&userAuths)
+	result := r.db.
+		Table("user_auths").
+		Where("user_id = ?", userID).
+		Find(&userAuths)
 
 	return userAuths, result.Error
 }
@@ -48,12 +65,17 @@ func (r *Repository) CreateVerificationCode(userCode *models.UserCode) error {
 }
 
 func (r *Repository) DeleteVerificationCode(userCode *models.UserCode) error {
-	return r.db.Table("user_codes").Where("telegram = ?", userCode.Telegram).Delete(userCode).Error
+	return r.db.
+		Table("user_codes").
+		Where("telegram = ?", userCode.Telegram).
+		Delete(userCode).Error
 }
 
 func (r *Repository) CheckVerificationCode(userCode *models.UserCode) (int64, error) {
 	var user models.User
-	result := r.db.Select("us.id").Table("users us").
+	result := r.db.
+		Select("us.id").
+		Table("users us").
 		Joins("JOIN user_codes uc ON uc.telegram = us.telegram").
 		Where("uc.telegram = ? AND uc.code = ?", userCode.Telegram, userCode.Code).
 		First(&user)

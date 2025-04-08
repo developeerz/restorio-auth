@@ -19,14 +19,14 @@ const (
 )
 
 type Service struct {
-	userRepository Repository
+	repo Repository
 }
 
-func NewService(userRepository Repository) *Service {
-	return &Service{userRepository: userRepository}
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
-func (userService *Service) SignUp(req *dto.SignUpRequest) (int, error) {
+func (service *Service) SignUp(req *dto.SignUpRequest) (int, error) {
 	var err error
 	var user *models.User
 
@@ -35,14 +35,14 @@ func (userService *Service) SignUp(req *dto.SignUpRequest) (int, error) {
 		return http.StatusInternalServerError, err
 	}
 
-	err = userService.userRepository.CreateUser(user)
+	err = service.repo.CreateUser(user)
 	if err != nil {
 		return http.StatusConflict, err
 	}
 
 	userCode := models.UserCode{Telegram: user.Telegram, Code: rand.Intn(rangeVal) + minVal}
 
-	err = userService.userRepository.CreateVerificationCode(&userCode)
+	err = service.repo.CreateVerificationCode(&userCode)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -50,7 +50,7 @@ func (userService *Service) SignUp(req *dto.SignUpRequest) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (userService *Service) Verify(req *dto.VerificationRequest) (int, error) {
+func (service *Service) Verify(req *dto.VerificationRequest) (int, error) {
 	var err error
 
 	userCode, err := mapper.VerificationToUserCode(req)
@@ -58,24 +58,19 @@ func (userService *Service) Verify(req *dto.VerificationRequest) (int, error) {
 		return http.StatusInternalServerError, err
 	}
 
-	userID, err := userService.userRepository.CheckVerificationCode(userCode)
+	userID, err := service.repo.CheckVerificationCode(userCode)
 	if err != nil {
 		return http.StatusUnauthorized, err
 	}
 
-	err = userService.userRepository.DeleteVerificationCode(userCode)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	err = userService.userRepository.VerifyUser(userID)
+	err = service.repo.DeleteVerificationCode(userCode)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	userAuth := &models.UserAuth{UserID: userID, AuthID: models.USER}
 
-	err = userService.userRepository.SetUserAuth(userAuth)
+	err = service.repo.SetUserAuth(userAuth)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -83,19 +78,19 @@ func (userService *Service) Verify(req *dto.VerificationRequest) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (userService *Service) Login(req *dto.LoginRequest) (int, *dto.JwtAccess, string, error) {
+func (service *Service) Login(req *dto.LoginRequest) (int, *dto.JwtAccess, string, error) {
 	var err error
-	var user *models.User
+	var user *models.UserWithAuths
 
 	req.Telegram, _ = strings.CutPrefix(req.Telegram, "@")
 
-	user, err = userService.userRepository.FindByTelegram(req.Telegram)
+	user, err = service.repo.FindByTelegramWithAuths(req.Telegram)
 	if err != nil {
 		return http.StatusNotFound, nil, "", err
 	}
 
-	if !user.Verified {
-		return http.StatusUnauthorized, nil, "", fmt.Errorf("GetUserAuths(%d): not verified", user.ID)
+	if user.Auths == nil {
+		return http.StatusUnauthorized, nil, "", fmt.Errorf("UserID (%d): hasn't auths", user.ID)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
@@ -103,12 +98,7 @@ func (userService *Service) Login(req *dto.LoginRequest) (int, *dto.JwtAccess, s
 		return http.StatusUnauthorized, nil, "", err
 	}
 
-	userAuths, err := userService.userRepository.GetUserAuths(user.ID)
-	if err != nil {
-		return http.StatusInternalServerError, nil, "", fmt.Errorf("GetUserAuths(%d): %w", user.ID, err)
-	}
-
-	jwts, err := jwt.NewJwt(mapper.UserAuthToIDAndAuth(userAuths))
+	jwts, err := jwt.NewJwt(user.ID, mapper.AuthsToStrings(user.Auths))
 	if err != nil {
 		return http.StatusInternalServerError, nil, "", err
 	}
