@@ -18,7 +18,7 @@ var ConfigService Config
 
 func LoadConfig() {
 	err := godotenv.Load()
-	log.Printf("LoadConfig: %v", err)
+	log.Printf("load dotenv: %v", err)
 
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
