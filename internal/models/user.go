@@ -10,10 +10,16 @@ type User struct {
 	TelegramID       int64  `gorm:"default:null"`
 	Password         string `gorm:"size:255"`
 	RegistrationDate time.Time
-	Verified         bool `gorm:"default:false"`
 }
 
 type UserCode struct {
 	Telegram string `gorm:"primaryKey,unique,size:63"`
 	Code     int
+}
+
+type UserWithAuths struct {
+	ID       int64       `gorm:"primaryKey"`
+	Telegram string      `gorm:"unique,size:63"`
+	Password string      `gorm:"size:255"`
+	Auths    []Authority `gorm:"many2many:user_auths;joinForeignKey:UserID;joinReferences:AuthID"`
 }

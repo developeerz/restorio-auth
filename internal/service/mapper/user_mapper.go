@@ -24,7 +24,6 @@ func SignUpToUser(signUp *dto.SignUpRequest) (*models.User, error) {
 		Telegram:         signUp.Telegram,
 		Password:         string(hashedPassword),
 		RegistrationDate: time.Now(),
-		Verified:         false,
 	}, nil
 }
 
@@ -52,4 +51,13 @@ func JwtToAccess(jwts *jwt.Jwt) *dto.JwtAccess {
 	return &dto.JwtAccess{
 		Access: jwts.Access,
 	}
+}
+
+func AuthsToStrings(auths []models.Authority) []string {
+	strAuths := make([]string, len(auths))
+	for i, v := range auths {
+		strAuths[i] = string(v.ID)
+	}
+
+	return strAuths
 }

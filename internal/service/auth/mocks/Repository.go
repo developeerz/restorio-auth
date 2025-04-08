@@ -12,9 +12,9 @@ type Repository struct {
 	mock.Mock
 }
 
-// GetUserAuths provides a mock function with given fields: userId
-func (_m *Repository) GetUserAuths(userId int64) ([]models.UserAuth, error) {
-	ret := _m.Called(userId)
+// GetUserAuths provides a mock function with given fields: userID
+func (_m *Repository) GetUserAuths(userID int64) ([]models.UserAuth, error) {
+	ret := _m.Called(userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserAuths")
@@ -23,10 +23,10 @@ func (_m *Repository) GetUserAuths(userId int64) ([]models.UserAuth, error) {
 	var r0 []models.UserAuth
 	var r1 error
 	if rf, ok := ret.Get(0).(func(int64) ([]models.UserAuth, error)); ok {
-		return rf(userId)
+		return rf(userID)
 	}
 	if rf, ok := ret.Get(0).(func(int64) []models.UserAuth); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.UserAuth)
@@ -34,7 +34,7 @@ func (_m *Repository) GetUserAuths(userId int64) ([]models.UserAuth, error) {
 	}
 
 	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
