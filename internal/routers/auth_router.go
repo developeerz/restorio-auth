@@ -1,13 +1,21 @@
 package routers
 
 import (
-	"github.com/developeerz/restorio-auth/internal/handler"
+	auth_handler "github.com/developeerz/restorio-auth/internal/handler/auth"
 	"github.com/gin-gonic/gin"
 )
 
-func NewAuthRouter(router *gin.Engine, authHandler *handler.AuthHandler) {
-	authapi := router.Group("/api/auth-service/auth")
+const (
+	authGroupPath            = "/api/auth-service/auth"
+	authGroupCheckAccessPath = "/check-access"
+	authGroupRefreshPath     = "/refresh"
 
-	authapi.GET("/check-access", authHandler.CheckAccess)
-	authapi.GET("/refresh", authHandler.Refresh)
+	AuthGroupFullRefreshPath = authGroupPath + authGroupRefreshPath
+)
+
+func NewAuthRouter(router *gin.Engine, authHandler *auth_handler.Handler) {
+	authapi := router.Group(authGroupPath)
+
+	authapi.GET(authGroupCheckAccessPath, authHandler.CheckAccess)
+	authapi.GET(authGroupRefreshPath, authHandler.Refresh)
 }

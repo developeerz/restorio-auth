@@ -9,7 +9,7 @@ import (
 )
 
 type Config struct {
-	Access   string
+	Access   string // `validate:"required"`
 	Refresh  string
 	Postgres string
 }

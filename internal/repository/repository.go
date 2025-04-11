@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/developeerz/restorio-auth/internal/models"
+	"github.com/developeerz/restorio-auth/internal/repository/models"
 	"gorm.io/gorm"
 )
 

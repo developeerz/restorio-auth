@@ -1,4 +1,4 @@
-package handler
+package auth
 
 import (
 	"fmt"
@@ -6,36 +6,42 @@ import (
 	"strings"
 
 	"github.com/developeerz/restorio-auth/internal/jwt"
-	"github.com/developeerz/restorio-auth/internal/service/auth"
 	"github.com/gin-gonic/gin"
 )
 
-type AuthHandler struct {
-	authService *auth.Service
+const (
+	cookieRefreshName = "refresh"
+	headerUserIDKey   = "X-User-Id"
+	headerRolesKey    = "X-Roles"
+)
+
+type Handler struct {
+	service     Service
+	refreshPath string
 }
 
-func NewAuthHandler(authService *auth.Service) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewHandler(service Service, refreshPath string) *Handler {
+	return &Handler{service: service, refreshPath: refreshPath}
 }
 
-func (authHandler *AuthHandler) Refresh(ctx *gin.Context) {
-	refreshOld, err := ctx.Cookie("refresh")
+func (handler *Handler) Refresh(ctx *gin.Context) {
+	refreshOld, err := ctx.Cookie(cookieRefreshName)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	access, refresh, err := authHandler.authService.Refresh(refreshOld)
+	access, refresh, err := handler.service.Refresh(refreshOld)
 	if err != nil {
 		ctx.Status(http.StatusUnauthorized)
 		return
 	}
 
-	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/auth-service/auth/refresh", "", false, true)
+	ctx.SetCookie(cookieRefreshName, refresh, jwt.RefreshMaxAge, handler.refreshPath, "", false, true)
 	ctx.JSON(http.StatusOK, access)
 }
 
-func (authHandler *AuthHandler) CheckAccess(ctx *gin.Context) {
+func (handler *Handler) CheckAccess(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	if authHeader == "" {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -54,8 +60,8 @@ func (authHandler *AuthHandler) CheckAccess(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Header("X-User-Id", id)
-	ctx.Header("X-Roles", strings.Join(roles, ","))
+	ctx.Header(headerUserIDKey, id)
+	ctx.Header(headerRolesKey, strings.Join(roles, ","))
 
 	ctx.Status(http.StatusOK)
 }

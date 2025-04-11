@@ -5,25 +5,26 @@ import (
 
 	"github.com/developeerz/restorio-auth/config"
 	"github.com/developeerz/restorio-auth/internal/database"
-	"github.com/developeerz/restorio-auth/internal/handler"
+	auth_handler "github.com/developeerz/restorio-auth/internal/handler/auth"
+	user_handler "github.com/developeerz/restorio-auth/internal/handler/user"
 	"github.com/developeerz/restorio-auth/internal/repository"
 	"github.com/developeerz/restorio-auth/internal/routers"
-	"github.com/developeerz/restorio-auth/internal/service/auth"
-	"github.com/developeerz/restorio-auth/internal/service/user"
+	auth_service "github.com/developeerz/restorio-auth/internal/service/auth"
+	user_service "github.com/developeerz/restorio-auth/internal/service/user"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	config.LoadConfig()
-	database.Connect()
 
-	repository := repository.NewRepository(database.DB)
+	db := database.Connect()
+	repository := repository.NewRepository(db)
 
-	userService := user.NewService(repository)
-	userHandler := handler.NewUserHandler(userService)
+	userService := user_service.NewService(repository)
+	userHandler := user_handler.NewHandler(userService, routers.AuthGroupFullRefreshPath)
 
-	authService := auth.NewService(repository)
-	authHandler := handler.NewAuthHandler(authService)
+	authService := auth_service.NewService(repository)
+	authHandler := auth_handler.NewHandler(authService, routers.AuthGroupFullRefreshPath)
 
 	router := gin.Default()
 	routers.NewUserRouter(router, userHandler)

@@ -1,6 +1,6 @@
 package user
 
-import "github.com/developeerz/restorio-auth/internal/models"
+import "github.com/developeerz/restorio-auth/internal/repository/models"
 
 type Repository interface {
 	CreateUserAuth(userAuth *models.UserAuth) error

@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	models "github.com/developeerz/restorio-auth/internal/models"
+	models "github.com/developeerz/restorio-auth/internal/repository/models"
 	mock "github.com/stretchr/testify/mock"
 )
 

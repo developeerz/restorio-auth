@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/developeerz/restorio-auth/internal/dto"
-	"github.com/developeerz/restorio-auth/internal/models"
+	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
+	"github.com/developeerz/restorio-auth/internal/repository/models"
 	"github.com/developeerz/restorio-auth/internal/service/user"
-	"github.com/developeerz/restorio-auth/internal/service/user/mocks"
+	"github.com/developeerz/restorio-auth/test/user/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"

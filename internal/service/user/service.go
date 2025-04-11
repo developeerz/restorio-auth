@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/developeerz/restorio-auth/internal/dto"
+	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
-	"github.com/developeerz/restorio-auth/internal/models"
-	"github.com/developeerz/restorio-auth/internal/service/mapper"
+	"github.com/developeerz/restorio-auth/internal/repository/models"
+	"github.com/developeerz/restorio-auth/internal/service/user/mapper"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -78,7 +78,7 @@ func (service *Service) Verify(req *dto.VerificationRequest) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (service *Service) Login(req *dto.LoginRequest) (int, *dto.JwtAccess, string, error) {
+func (service *Service) Login(req *dto.LoginRequest) (int, *dto.JwtAccessResponse, string, error) {
 	var err error
 	var user *models.UserWithAuths
 

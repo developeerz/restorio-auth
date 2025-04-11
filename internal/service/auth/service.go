@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"github.com/developeerz/restorio-auth/internal/dto"
+	user_dto "github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
-	"github.com/developeerz/restorio-auth/internal/service/mapper"
+	user_mapper "github.com/developeerz/restorio-auth/internal/service/user/mapper"
 )
 
 type Service struct {
@@ -14,7 +14,7 @@ func NewService(repo Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (service *Service) Refresh(refreshToken string) (*dto.JwtAccess, string, error) {
+func (service *Service) Refresh(refreshToken string) (*user_dto.JwtAccessResponse, string, error) {
 	userID, err := jwt.ParseRefresh(refreshToken)
 	if err != nil {
 		return nil, "", err
@@ -25,10 +25,10 @@ func (service *Service) Refresh(refreshToken string) (*dto.JwtAccess, string, er
 		return nil, "", err
 	}
 
-	jwts, err := jwt.NewJwt(mapper.UserAuthToIDAndAuth(userAuths))
+	jwts, err := jwt.NewJwt(user_mapper.UserAuthToIDAndAuth(userAuths))
 	if err != nil {
 		return nil, "", err
 	}
 
-	return mapper.JwtToAccess(jwts), jwts.Refresh, nil
+	return user_mapper.JwtToAccess(jwts), jwts.Refresh, nil
 }

@@ -1,23 +1,25 @@
-package handler
+package user
 
 import (
 	"net/http"
 
-	"github.com/developeerz/restorio-auth/internal/dto"
+	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
-	"github.com/developeerz/restorio-auth/internal/service/user"
 	"github.com/gin-gonic/gin"
 )
 
-type UserHandler struct {
-	userService user.Service
+const jwtMaxAge = jwt.RefreshMaxAge
+
+type Handler struct {
+	service     Service
+	refreshPath string
 }
 
-func NewUserHandler(userService *user.Service) *UserHandler {
-	return &UserHandler{userService: *userService}
+func NewHandler(service Service, refreshPath string) *Handler {
+	return &Handler{service: service, refreshPath: refreshPath}
 }
 
-func (handler *UserHandler) SignUp(ctx *gin.Context) {
+func (handler *Handler) SignUp(ctx *gin.Context) {
 	var err error
 	var req dto.SignUpRequest
 
@@ -27,8 +29,8 @@ func (handler *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	status, err := handler.userService.SignUp(&req)
-	if err != nil || status != http.StatusOK {
+	status, err := handler.service.SignUp(&req)
+	if err != nil {
 		ctx.AbortWithStatus(status)
 		return
 	}
@@ -36,7 +38,7 @@ func (handler *UserHandler) SignUp(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-func (handler *UserHandler) Verification(ctx *gin.Context) {
+func (handler *Handler) Verification(ctx *gin.Context) {
 	var err error
 	var req dto.VerificationRequest
 
@@ -46,7 +48,7 @@ func (handler *UserHandler) Verification(ctx *gin.Context) {
 		return
 	}
 
-	status, err := handler.userService.Verify(&req)
+	status, err := handler.service.Verify(&req)
 	if err != nil {
 		ctx.AbortWithStatus(status)
 		return
@@ -55,7 +57,7 @@ func (handler *UserHandler) Verification(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-func (handler *UserHandler) Login(ctx *gin.Context) {
+func (handler *Handler) Login(ctx *gin.Context) {
 	var err error
 	var req dto.LoginRequest
 
@@ -65,12 +67,12 @@ func (handler *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	status, access, refresh, err := handler.userService.Login(&req)
+	status, access, refresh, err := handler.service.Login(&req)
 	if err != nil {
 		ctx.AbortWithStatus(status)
 		return
 	}
 
-	ctx.SetCookie("refresh", refresh, jwt.RefreshMaxAge, "/api/web-gateway/auth/refresh", "", false, true)
+	ctx.SetCookie("refresh", refresh, jwtMaxAge, handler.refreshPath, "", false, true)
 	ctx.JSON(http.StatusOK, access)
 }

@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/developeerz/restorio-auth/internal/jwt"
-	"github.com/developeerz/restorio-auth/internal/models"
+	"github.com/developeerz/restorio-auth/internal/repository/models"
 	"github.com/developeerz/restorio-auth/internal/service/auth"
-	"github.com/developeerz/restorio-auth/internal/service/auth/mocks"
+	"github.com/developeerz/restorio-auth/test/auth/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

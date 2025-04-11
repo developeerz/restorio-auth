@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/developeerz/restorio-auth/internal/dto"
+	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
-	"github.com/developeerz/restorio-auth/internal/models"
+	"github.com/developeerz/restorio-auth/internal/repository/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -47,8 +47,8 @@ func UserAuthToIDAndAuth(userAuths []models.UserAuth) (int64, []string) {
 	return id, auths
 }
 
-func JwtToAccess(jwts *jwt.Jwt) *dto.JwtAccess {
-	return &dto.JwtAccess{
+func JwtToAccess(jwts *jwt.Jwt) *dto.JwtAccessResponse {
+	return &dto.JwtAccessResponse{
 		Access: jwts.Access,
 	}
 }

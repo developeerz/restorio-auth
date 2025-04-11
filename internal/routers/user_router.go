@@ -1,14 +1,21 @@
 package routers
 
 import (
-	"github.com/developeerz/restorio-auth/internal/handler"
+	user_handler "github.com/developeerz/restorio-auth/internal/handler/user"
 	"github.com/gin-gonic/gin"
 )
 
-func NewUserRouter(router *gin.Engine, userHandler *handler.UserHandler) {
-	userapi := router.Group("/api/auth-service/user")
+const (
+	userGroupPath       = "/api/auth-service/user"
+	userGroupSignUpPath = "/sign-up"
+	userGroupLoginPath  = "/login"
+	userGroupVerifyPath = "/verify"
+)
 
-	userapi.POST("/sign-up", userHandler.SignUp)
-	userapi.POST("/login", userHandler.Login)
-	userapi.POST("/verify", userHandler.Verification)
+func NewUserRouter(router *gin.Engine, userHandler *user_handler.Handler) {
+	userapi := router.Group(userGroupPath)
+
+	userapi.POST(userGroupSignUpPath, userHandler.SignUp)
+	userapi.POST(userGroupLoginPath, userHandler.Login)
+	userapi.POST(userGroupVerifyPath, userHandler.Verification)
 }

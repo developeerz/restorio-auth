@@ -8,9 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
-func Connect() {
+func Connect() *gorm.DB {
 	dsn := config.ConfigService.Postgres
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -18,7 +16,7 @@ func Connect() {
 		log.Fatalf("database connection error: %v", err)
 	}
 
-	DB = db
-
 	log.Println("database connected successfully")
+
+	return db
 }
