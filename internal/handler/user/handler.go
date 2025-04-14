@@ -28,6 +28,7 @@ func (handler *Handler) SignUp(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("SignUp", err).Send()
 		ctx.AbortWithStatus(http.StatusBadRequest)
+
 		return
 	}
 
@@ -35,6 +36,7 @@ func (handler *Handler) SignUp(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("SignUp", err).Send()
 		ctx.AbortWithStatus(status)
+
 		return
 	}
 
@@ -49,6 +51,7 @@ func (handler *Handler) Verification(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("Verification", err).Send()
 		ctx.AbortWithStatus(http.StatusBadRequest)
+
 		return
 	}
 
@@ -56,6 +59,7 @@ func (handler *Handler) Verification(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("Verification", err).Send()
 		ctx.AbortWithStatus(status)
+
 		return
 	}
 
@@ -70,6 +74,7 @@ func (handler *Handler) Login(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("Login", err).Send()
 		ctx.AbortWithStatus(http.StatusBadRequest)
+
 		return
 	}
 
@@ -77,6 +82,7 @@ func (handler *Handler) Login(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("Login", err).Send()
 		ctx.AbortWithStatus(status)
+
 		return
 	}
 

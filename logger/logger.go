@@ -7,11 +7,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const modePerm os.FileMode = 0666
+
 func InitLogger() error {
 	file, err := os.OpenFile(
 		"/var/log/restorio-auth/log.log",
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
-		0666,
+		modePerm,
 	)
 	if err != nil {
 		return err

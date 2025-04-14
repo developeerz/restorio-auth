@@ -19,12 +19,16 @@ import (
 
 func main() {
 	err := logger.InitLogger()
-	logFatalError("logger init", err)
+	if err != nil {
+		log.Fatal().AnErr("error", fmt.Errorf("logger init: %w", err))
+	}
 
 	config.LoadConfig()
 
 	db, err := database.Connect()
-	logFatalError("database connect", err)
+	if err != nil {
+		log.Fatal().AnErr("error", fmt.Errorf("database connect: %w", err))
+	}
 
 	repository := repository.NewRepository(db)
 
@@ -41,11 +45,7 @@ func main() {
 	routers.NewAuthRouter(router, authHandler)
 
 	err = router.Run(":8081")
-	logFatalError("router run", err)
-}
-
-func logFatalError(msg string, err error) {
 	if err != nil {
-		log.Fatal().AnErr("error", fmt.Errorf("%s: %w", msg, err))
+		log.Fatal().AnErr("error", fmt.Errorf("server run: %w", err))
 	}
 }

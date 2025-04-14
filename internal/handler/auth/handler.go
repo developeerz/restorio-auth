@@ -30,6 +30,7 @@ func (handler *Handler) Refresh(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("Refresh", err).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
+
 		return
 	}
 
@@ -37,6 +38,7 @@ func (handler *Handler) Refresh(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("Refresh", err).Send()
 		ctx.Status(http.StatusUnauthorized)
+
 		return
 	}
 
@@ -49,6 +51,7 @@ func (handler *Handler) CheckAccess(ctx *gin.Context) {
 	if authHeader == "" {
 		log.Error().AnErr("Refresh", fmt.Errorf("cannot find \"Authorization\" header"))
 		ctx.AbortWithStatus(http.StatusUnauthorized)
+
 		return
 	}
 
@@ -56,6 +59,7 @@ func (handler *Handler) CheckAccess(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("Refresh", err).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
+
 		return
 	}
 
@@ -63,6 +67,7 @@ func (handler *Handler) CheckAccess(ctx *gin.Context) {
 	if err != nil {
 		log.Error().AnErr("Refresh", err).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
+
 		return
 	}
 
