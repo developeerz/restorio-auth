@@ -6,6 +6,7 @@ import (
 	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 const jwtMaxAge = jwt.RefreshMaxAge
@@ -25,12 +26,14 @@ func (handler *Handler) SignUp(ctx *gin.Context) {
 
 	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
+		log.Error().AnErr("SignUp", err).Send()
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	status, err := handler.service.SignUp(&req)
 	if err != nil {
+		log.Error().AnErr("SignUp", err).Send()
 		ctx.AbortWithStatus(status)
 		return
 	}
@@ -44,12 +47,14 @@ func (handler *Handler) Verification(ctx *gin.Context) {
 
 	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
+		log.Error().AnErr("Verification", err).Send()
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	status, err := handler.service.Verify(&req)
 	if err != nil {
+		log.Error().AnErr("Verification", err).Send()
 		ctx.AbortWithStatus(status)
 		return
 	}
@@ -63,12 +68,14 @@ func (handler *Handler) Login(ctx *gin.Context) {
 
 	err = ctx.ShouldBindJSON(&req)
 	if err != nil {
+		log.Error().AnErr("Login", err).Send()
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	status, access, refresh, err := handler.service.Login(&req)
 	if err != nil {
+		log.Error().AnErr("Login", err).Send()
 		ctx.AbortWithStatus(status)
 		return
 	}

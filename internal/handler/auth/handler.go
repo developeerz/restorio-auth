@@ -7,6 +7,7 @@ import (
 
 	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -27,12 +28,14 @@ func NewHandler(service Service, refreshPath string) *Handler {
 func (handler *Handler) Refresh(ctx *gin.Context) {
 	refreshOld, err := ctx.Cookie(cookieRefreshName)
 	if err != nil {
+		log.Error().AnErr("Refresh", err).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
 	access, refresh, err := handler.service.Refresh(refreshOld)
 	if err != nil {
+		log.Error().AnErr("Refresh", err).Send()
 		ctx.Status(http.StatusUnauthorized)
 		return
 	}
@@ -44,18 +47,21 @@ func (handler *Handler) Refresh(ctx *gin.Context) {
 func (handler *Handler) CheckAccess(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	if authHeader == "" {
+		log.Error().AnErr("Refresh", fmt.Errorf("cannot find \"Authorization\" header"))
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
 	accessToken, err := extractToken(authHeader)
 	if err != nil {
+		log.Error().AnErr("Refresh", err).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
 	id, roles, err := jwt.GetAccess(accessToken)
 	if err != nil {
+		log.Error().AnErr("Refresh", err).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}

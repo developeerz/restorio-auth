@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -80,7 +79,7 @@ func ParseRefresh(refreshToken string) (int64, error) {
 func GetAccess(accessToken string) (string, []string, error) {
 	token, err := getValidToken(accessToken, config.ConfigService.Access)
 	if err != nil {
-		return "", nil, errors.New("invalid token")
+		return "", nil, fmt.Errorf("invalid token")
 	}
 
 	strUserID, err := token.Claims.GetSubject()
@@ -90,7 +89,7 @@ func GetAccess(accessToken string) (string, []string, error) {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", nil, errors.New("token.Claims: does not provide <jwt.MapClaims> value")
+		return "", nil, fmt.Errorf("token.Claims: does not provide <jwt.MapClaims> value")
 	}
 
 	roles, ok := claims["roles"].([]interface{})

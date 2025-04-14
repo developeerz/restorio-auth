@@ -2,10 +2,10 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
 )
 
 type Config struct {
@@ -18,7 +18,7 @@ var ConfigService Config
 
 func LoadConfig() {
 	err := godotenv.Load()
-	log.Printf("load dotenv: %v", err)
+	log.Info().Msgf("load dotenv: %v", err)
 
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
