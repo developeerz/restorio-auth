@@ -39,7 +39,7 @@ func (r *UserRepository) GetUserAuths(telegramID int64) ([]models.UserAuth, erro
 	var userAuths []models.UserAuth
 	result := r.db.
 		Table("user_auths").
-		Where("telegram_id = ?", telegramID).
+		Where("user_telegram_id = ?", telegramID).
 		Find(&userAuths)
 
 	return userAuths, result.Error

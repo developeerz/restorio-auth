@@ -1,4 +1,0 @@
-CREATE TABLE IF NOT EXISTS user_codes (
-    telegram VARCHAR(63) PRIMARY KEY REFERENCES users (telegram) ON DELETE CASCADE,
-    code INTEGER
-);

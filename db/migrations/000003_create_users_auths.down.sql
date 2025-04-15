@@ -1,1 +1,1 @@
-DROP TABLE user_auths;
+DROP TABLE IF EXISTS user_auths;

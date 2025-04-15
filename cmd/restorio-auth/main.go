@@ -11,19 +11,19 @@ import (
 	"github.com/developeerz/restorio-auth/internal/routers"
 	auth_service "github.com/developeerz/restorio-auth/internal/service/auth"
 	user_service "github.com/developeerz/restorio-auth/internal/service/user"
-	"github.com/developeerz/restorio-auth/logger"
+	"github.com/developeerz/restorio-auth/pkg/logger"
 	"github.com/developeerz/restorio-auth/pkg/repository/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
-	err := logger.InitLogger()
+	config.LoadConfig()
+
+	err := logger.InitLogger(config.ConfigService.ServiceName)
 	if err != nil {
 		log.Fatal().AnErr("error", err)
 	}
-
-	config.LoadConfig()
 
 	pgdb, err := postgres.Connect()
 	if err != nil {
@@ -39,10 +39,10 @@ func main() {
 	userCache := redis.NewUserCache(rdb)
 
 	userService := user_service.NewService(userRepo, userCache)
-	userHandler := user_handler.NewHandler(userService, routers.AuthGroupFullRefreshPath)
+	userHandler := user_handler.NewHandler(userService, routers.GatewayRefreshPath)
 
 	authService := auth_service.NewService(userRepo)
-	authHandler := auth_handler.NewHandler(authService, routers.AuthGroupFullRefreshPath)
+	authHandler := auth_handler.NewHandler(authService, routers.GatewayRefreshPath)
 
 	router := gin.Default()
 	router.Use(middleware.Logging)

@@ -3,13 +3,17 @@ package user
 import (
 	"net/http"
 
+	"github.com/developeerz/restorio-auth/internal/handler/auth"
 	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
 
-const jwtMaxAge = jwt.RefreshMaxAge
+const (
+	jwtMaxAge         = jwt.RefreshMaxAge
+	cookieRefreshName = auth.CookieRefreshName
+)
 
 type Handler struct {
 	service     Service
@@ -86,6 +90,6 @@ func (handler *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("refresh", refresh, jwtMaxAge, handler.refreshPath, "", false, true)
+	ctx.SetCookie(cookieRefreshName, refresh, jwtMaxAge, handler.refreshPath, "", false, true)
 	ctx.JSON(http.StatusOK, access)
 }

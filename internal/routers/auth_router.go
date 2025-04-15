@@ -10,7 +10,7 @@ const (
 	authGroupCheckAccessPath = "/check-access"
 	authGroupRefreshPath     = "/refresh"
 
-	AuthGroupFullRefreshPath = authGroupPath + authGroupRefreshPath
+	GatewayRefreshPath = "/api"
 )
 
 func NewAuthRouter(router *gin.Engine, authHandler *auth_handler.Handler) {

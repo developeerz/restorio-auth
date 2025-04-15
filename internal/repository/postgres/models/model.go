@@ -22,7 +22,7 @@ type UserWithAuths struct {
 	TelegramID int64       `gorm:"primaryKey"`
 	Telegram   string      `gorm:"unique,size:63"`
 	Password   string      `gorm:"size:255"`
-	Auths      []Authority `gorm:"many2many:user_auths;joinForeignKey:TelegramID;joinReferences:AuthID"`
+	Auths      []Authority `gorm:"many2many:user_auths;joinForeignKey:UserTelegramID;joinReferences:AuthID"`
 }
 
 type Authority struct {
@@ -31,8 +31,8 @@ type Authority struct {
 }
 
 type UserAuth struct {
-	TelegramID int64 `gorm:"primaryKey"`
-	AuthID     Auth  `gorm:"primaryKey"`
+	UserTelegramID int64 `gorm:"primaryKey"`
+	AuthID         Auth  `gorm:"primaryKey"`
 }
 
 func (Authority) TableName() string {

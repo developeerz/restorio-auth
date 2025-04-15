@@ -9,10 +9,10 @@ import (
 )
 
 type Config struct {
-	Access   string // `validate:"required"`
-	Refresh  string
-	Postgres string
-	Redis    string
+	ServiceName string
+	Access      string // `validate:"required"`
+	Refresh     string
+	Postgres    string
 }
 
 var ConfigService Config
@@ -31,8 +31,9 @@ func LoadConfig() {
 	)
 
 	ConfigService = Config{
-		Access:   os.Getenv("SECRET_ACCESS"),
-		Refresh:  os.Getenv("SECRET_REFRESH"),
-		Postgres: dsn,
+		ServiceName: os.Getenv("SERVICE_NAME"),
+		Access:      os.Getenv("SECRET_ACCESS"),
+		Refresh:     os.Getenv("SECRET_REFRESH"),
+		Postgres:    dsn,
 	}
 }

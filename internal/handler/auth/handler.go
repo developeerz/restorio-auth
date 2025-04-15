@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	cookieRefreshName = "refresh"
+	CookieRefreshName = "refresh"
 	headerUserIDKey   = "X-Telegram-Id"
 	headerRolesKey    = "X-Roles"
 )
@@ -26,7 +26,7 @@ func NewHandler(service Service, refreshPath string) *Handler {
 }
 
 func (handler *Handler) Refresh(ctx *gin.Context) {
-	refreshOld, err := ctx.Cookie(cookieRefreshName)
+	refreshOld, err := ctx.Cookie(CookieRefreshName)
 	if err != nil {
 		log.Error().AnErr("Refresh", err).Send()
 		ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -42,7 +42,7 @@ func (handler *Handler) Refresh(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie(cookieRefreshName, refresh, jwt.RefreshMaxAge, handler.refreshPath, "", false, true)
+	ctx.SetCookie(CookieRefreshName, refresh, jwt.RefreshMaxAge, handler.refreshPath, "", false, true)
 	ctx.JSON(http.StatusOK, access)
 }
 

@@ -37,9 +37,9 @@ func genRefreshToken(telegramID string) *jwt.MapClaims {
 }
 
 func NewJwt(telegramID int64, auths []string) (*Jwt, error) {
-	strtelegramID := strconv.FormatInt(telegramID, 10)
-	access := jwt.NewWithClaims(jwt.SigningMethodHS256, genAccessToken(strtelegramID, auths))
-	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, genRefreshToken(strtelegramID))
+	strTelegramID := strconv.FormatInt(telegramID, 10)
+	access := jwt.NewWithClaims(jwt.SigningMethodHS256, genAccessToken(strTelegramID, auths))
+	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, genRefreshToken(strTelegramID))
 
 	a, err := access.SignedString([]byte(config.ConfigService.Access))
 	if err != nil {

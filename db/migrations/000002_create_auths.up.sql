@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS auths (
-    id VARCHAR(16) PRIMARY KEY,
+    id VARCHAR(15) PRIMARY KEY,
     description TEXT NOT NULL
 );
 

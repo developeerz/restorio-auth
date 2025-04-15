@@ -7,14 +7,14 @@ import (
 	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/developeerz/restorio-auth/internal/repository/postgres/models"
-	redis_dto "github.com/developeerz/restorio-auth/pkg/repository/redis"
+	redis "github.com/developeerz/restorio-auth/pkg/repository/redis"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignUpToUser(signUp *dto.SignUpRequest) *redis_dto.User {
+func SignUpToUser(signUp *dto.SignUpRequest) *redis.User {
 	signUp.Telegram, _ = strings.CutPrefix(signUp.Telegram, "@")
 
-	return &redis_dto.User{
+	return &redis.User{
 		Firstname: signUp.Firstname,
 		Lastname:  signUp.Lastname,
 		Telegram:  signUp.Telegram,
@@ -23,7 +23,7 @@ func SignUpToUser(signUp *dto.SignUpRequest) *redis_dto.User {
 }
 
 func UserAuthToIDAndAuth(userAuths []models.UserAuth) (int64, []string) {
-	id := userAuths[0].TelegramID
+	id := userAuths[0].UserTelegramID
 
 	auths := make([]string, len(userAuths))
 	for i, v := range userAuths {
@@ -48,9 +48,7 @@ func AuthsToStrings(auths []models.Authority) []string {
 	return strAuths
 }
 
-func UserToUser(user *redis_dto.User) (*models.User, error) {
-	user.Telegram, _ = strings.CutPrefix(user.Telegram, "@")
-
+func UserToUser(user *redis.User) (*models.User, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err

@@ -10,9 +10,9 @@ import (
 
 const modePerm os.FileMode = 0666
 
-func InitLogger() error {
+func InitLogger(serviceName string) error {
 	file, err := os.OpenFile(
-		"/var/log/restorio-auth/log.log",
+		fmt.Sprintf("/var/log/%s/log.log", serviceName),
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 		modePerm,
 	)
