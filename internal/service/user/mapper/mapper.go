@@ -7,7 +7,7 @@ import (
 	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/developeerz/restorio-auth/internal/repository/postgres/models"
-	redis_dto "github.com/developeerz/restorio-auth/pkg/redis"
+	redis_dto "github.com/developeerz/restorio-auth/pkg/repository/redis"
 	"golang.org/x/crypto/bcrypt"
 )
 

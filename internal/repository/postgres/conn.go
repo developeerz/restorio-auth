@@ -1,4 +1,4 @@
-package database
+package postgres
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func PostgresConnect() (*gorm.DB, error) {
+func Connect() (*gorm.DB, error) {
 	dsn := config.ConfigService.Postgres
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})

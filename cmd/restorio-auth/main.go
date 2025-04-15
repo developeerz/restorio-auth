@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/developeerz/restorio-auth/config"
-	"github.com/developeerz/restorio-auth/internal/database"
 	auth_handler "github.com/developeerz/restorio-auth/internal/handler/auth"
 	user_handler "github.com/developeerz/restorio-auth/internal/handler/user"
 	"github.com/developeerz/restorio-auth/internal/middleware"
@@ -13,7 +12,7 @@ import (
 	auth_service "github.com/developeerz/restorio-auth/internal/service/auth"
 	user_service "github.com/developeerz/restorio-auth/internal/service/user"
 	"github.com/developeerz/restorio-auth/logger"
-	"github.com/developeerz/restorio-auth/pkg/redis"
+	"github.com/developeerz/restorio-auth/pkg/repository/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
@@ -26,12 +25,12 @@ func main() {
 
 	config.LoadConfig()
 
-	pgdb, err := database.PostgresConnect()
+	pgdb, err := postgres.Connect()
 	if err != nil {
 		log.Fatal().AnErr("error", err)
 	}
 
-	rdb, err := database.RedisConnect()
+	rdb, err := redis.Connect()
 	if err != nil {
 		log.Fatal().AnErr("error", err)
 	}
