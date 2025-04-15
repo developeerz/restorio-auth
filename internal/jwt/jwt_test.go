@@ -23,26 +23,26 @@ func TestNewJwt(t *testing.T) {
 func TestParseRefresh(t *testing.T) {
 	t.Parallel()
 
-	expectedUserID := int64(1)
-	token, err := jwt.NewJwt(expectedUserID, []string{"USER", "ADMIN"})
+	expectedtelegramID := int64(1)
+	token, err := jwt.NewJwt(expectedtelegramID, []string{"USER", "ADMIN"})
 	assert.NoError(t, err)
 
 	userID, err := jwt.ParseRefresh(token.Refresh)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedUserID, userID)
+	assert.Equal(t, expectedtelegramID, userID)
 }
 
 func TestGetAccess(t *testing.T) {
 	t.Parallel()
 
-	expectedUserID := int64(1)
+	expectedtelegramID := int64(1)
 	roles := []string{"USER", "ADMIN"}
-	token, err := jwt.NewJwt(expectedUserID, roles)
+	token, err := jwt.NewJwt(expectedtelegramID, roles)
 	assert.NoError(t, err)
 
-	strUserID, roleStrings, err := jwt.GetAccess(token.Access)
+	strtelegramID, roleStrings, err := jwt.GetAccess(token.Access)
 	assert.NoError(t, err)
-	assert.Equal(t, strconv.FormatInt(expectedUserID, 10), strUserID)
+	assert.Equal(t, strconv.FormatInt(expectedtelegramID, 10), strtelegramID)
 	assert.Equal(t, roles, roleStrings)
 }
 

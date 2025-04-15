@@ -15,12 +15,12 @@ func NewService(repo Repository) *Service {
 }
 
 func (service *Service) Refresh(refreshToken string) (*user_dto.JwtAccessResponse, string, error) {
-	userID, err := jwt.ParseRefresh(refreshToken)
+	telegramID, err := jwt.ParseRefresh(refreshToken)
 	if err != nil {
 		return nil, "", err
 	}
 
-	userAuths, err := service.repo.GetUserAuths(userID)
+	userAuths, err := service.repo.GetUserAuths(telegramID)
 	if err != nil {
 		return nil, "", err
 	}

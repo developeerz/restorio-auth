@@ -12,7 +12,7 @@ import (
 
 const (
 	cookieRefreshName = "refresh"
-	headerUserIDKey   = "X-User-Id"
+	headerUserIDKey   = "X-Telegram-Id"
 	headerRolesKey    = "X-Roles"
 )
 

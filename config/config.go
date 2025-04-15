@@ -12,6 +12,7 @@ type Config struct {
 	Access   string // `validate:"required"`
 	Refresh  string
 	Postgres string
+	Redis    string
 }
 
 var ConfigService Config

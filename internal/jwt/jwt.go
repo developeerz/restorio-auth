@@ -19,27 +19,27 @@ type Jwt struct {
 	Refresh string
 }
 
-func genAccessToken(userID string, auths []string) *jwt.MapClaims {
+func genAccessToken(telegramID string, auths []string) *jwt.MapClaims {
 	return &jwt.MapClaims{
-		"sub":   userID,
+		"sub":   telegramID,
 		"roles": auths,
 		"iat":   jwt.NewNumericDate(time.Now()),
 		"exp":   jwt.NewNumericDate(time.Now().Add(time.Second * AccessMaxAge)),
 	}
 }
 
-func genRefreshToken(userID string) *jwt.MapClaims {
+func genRefreshToken(telegramID string) *jwt.MapClaims {
 	return &jwt.MapClaims{
-		"sub": userID,
+		"sub": telegramID,
 		"iat": jwt.NewNumericDate(time.Now()),
 		"exp": jwt.NewNumericDate(time.Now().Add(time.Second * RefreshMaxAge)),
 	}
 }
 
-func NewJwt(userID int64, auths []string) (*Jwt, error) {
-	strUserID := strconv.FormatInt(userID, 10)
-	access := jwt.NewWithClaims(jwt.SigningMethodHS256, genAccessToken(strUserID, auths))
-	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, genRefreshToken(strUserID))
+func NewJwt(telegramID int64, auths []string) (*Jwt, error) {
+	strtelegramID := strconv.FormatInt(telegramID, 10)
+	access := jwt.NewWithClaims(jwt.SigningMethodHS256, genAccessToken(strtelegramID, auths))
+	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, genRefreshToken(strtelegramID))
 
 	a, err := access.SignedString([]byte(config.ConfigService.Access))
 	if err != nil {
@@ -63,17 +63,17 @@ func ParseRefresh(refreshToken string) (int64, error) {
 		return 0, err
 	}
 
-	strUserID, err := token.Claims.GetSubject()
+	strtelegramID, err := token.Claims.GetSubject()
 	if err != nil {
 		return 0, err
 	}
 
-	userID, err := strconv.ParseInt(strUserID, 10, 64)
+	telegramID, err := strconv.ParseInt(strtelegramID, 10, 64)
 	if err != nil {
 		return 0, err
 	}
 
-	return userID, nil
+	return telegramID, nil
 }
 
 func GetAccess(accessToken string) (string, []string, error) {
@@ -82,7 +82,7 @@ func GetAccess(accessToken string) (string, []string, error) {
 		return "", nil, fmt.Errorf("invalid token")
 	}
 
-	strUserID, err := token.Claims.GetSubject()
+	strtelegramID, err := token.Claims.GetSubject()
 	if err != nil {
 		return "", nil, err
 	}
@@ -108,7 +108,7 @@ func GetAccess(accessToken string) (string, []string, error) {
 		roleStrings[i] = strRole
 	}
 
-	return strUserID, roleStrings, nil
+	return strtelegramID, roleStrings, nil
 }
 
 func getValidToken(token string, key string) (*jwt.Token, error) {

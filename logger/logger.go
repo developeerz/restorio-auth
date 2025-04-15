@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -16,7 +17,7 @@ func InitLogger() error {
 		modePerm,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("logger init: %w", err)
 	}
 
 	log.Logger = zerolog.New(file).With().Timestamp().Logger()

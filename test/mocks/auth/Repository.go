@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	models "github.com/developeerz/restorio-auth/internal/repository/models"
+	models "github.com/developeerz/restorio-auth/internal/repository/postgres/models"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -12,9 +12,9 @@ type Repository struct {
 	mock.Mock
 }
 
-// GetUserAuths provides a mock function with given fields: userID
-func (_m *Repository) GetUserAuths(userID int64) ([]models.UserAuth, error) {
-	ret := _m.Called(userID)
+// GetUserAuths provides a mock function with given fields: telegramID
+func (_m *Repository) GetUserAuths(telegramID int64) ([]models.UserAuth, error) {
+	ret := _m.Called(telegramID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserAuths")
@@ -23,10 +23,10 @@ func (_m *Repository) GetUserAuths(userID int64) ([]models.UserAuth, error) {
 	var r0 []models.UserAuth
 	var r1 error
 	if rf, ok := ret.Get(0).(func(int64) ([]models.UserAuth, error)); ok {
-		return rf(userID)
+		return rf(telegramID)
 	}
 	if rf, ok := ret.Get(0).(func(int64) []models.UserAuth); ok {
-		r0 = rf(userID)
+		r0 = rf(telegramID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.UserAuth)
@@ -34,7 +34,7 @@ func (_m *Repository) GetUserAuths(userID int64) ([]models.UserAuth, error) {
 	}
 
 	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(userID)
+		r1 = rf(telegramID)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -6,38 +6,24 @@ import (
 
 	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
-	"github.com/developeerz/restorio-auth/internal/repository/models"
+	"github.com/developeerz/restorio-auth/internal/repository/postgres/models"
+	redis_dto "github.com/developeerz/restorio-auth/pkg/redis"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SignUpToUser(signUp *dto.SignUpRequest) (*models.User, error) {
+func SignUpToUser(signUp *dto.SignUpRequest) *redis_dto.User {
 	signUp.Telegram, _ = strings.CutPrefix(signUp.Telegram, "@")
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signUp.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
+	return &redis_dto.User{
+		Firstname: signUp.Firstname,
+		Lastname:  signUp.Lastname,
+		Telegram:  signUp.Telegram,
+		Password:  signUp.Password,
 	}
-
-	return &models.User{
-		Firstname:        signUp.Firstname,
-		Lastname:         signUp.Lastname,
-		Telegram:         signUp.Telegram,
-		Password:         string(hashedPassword),
-		RegistrationDate: time.Now(),
-	}, nil
-}
-
-func VerificationToUserCode(v *dto.VerificationRequest) (*models.UserCode, error) {
-	v.Telegram, _ = strings.CutPrefix(v.Telegram, "@")
-
-	return &models.UserCode{
-		Telegram: v.Telegram,
-		Code:     v.Code,
-	}, nil
 }
 
 func UserAuthToIDAndAuth(userAuths []models.UserAuth) (int64, []string) {
-	id := userAuths[0].UserID
+	id := userAuths[0].TelegramID
 
 	auths := make([]string, len(userAuths))
 	for i, v := range userAuths {
@@ -60,4 +46,22 @@ func AuthsToStrings(auths []models.Authority) []string {
 	}
 
 	return strAuths
+}
+
+func UserToUser(user *redis_dto.User) (*models.User, error) {
+	user.Telegram, _ = strings.CutPrefix(user.Telegram, "@")
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.User{
+		TelegramID:       user.TelegramID,
+		Firstname:        user.Firstname,
+		Lastname:         user.Lastname,
+		Telegram:         user.Telegram,
+		Password:         string(hashedPassword),
+		RegistrationDate: time.Now(),
+	}, nil
 }

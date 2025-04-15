@@ -8,11 +8,12 @@ import (
 	auth_handler "github.com/developeerz/restorio-auth/internal/handler/auth"
 	user_handler "github.com/developeerz/restorio-auth/internal/handler/user"
 	"github.com/developeerz/restorio-auth/internal/middleware"
-	"github.com/developeerz/restorio-auth/internal/repository"
+	"github.com/developeerz/restorio-auth/internal/repository/postgres"
 	"github.com/developeerz/restorio-auth/internal/routers"
 	auth_service "github.com/developeerz/restorio-auth/internal/service/auth"
 	user_service "github.com/developeerz/restorio-auth/internal/service/user"
 	"github.com/developeerz/restorio-auth/logger"
+	"github.com/developeerz/restorio-auth/pkg/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
@@ -20,22 +21,28 @@ import (
 func main() {
 	err := logger.InitLogger()
 	if err != nil {
-		log.Fatal().AnErr("error", fmt.Errorf("logger init: %w", err))
+		log.Fatal().AnErr("error", err)
 	}
 
 	config.LoadConfig()
 
-	db, err := database.Connect()
+	pgdb, err := database.PostgresConnect()
 	if err != nil {
-		log.Fatal().AnErr("error", fmt.Errorf("database connect: %w", err))
+		log.Fatal().AnErr("error", err)
 	}
 
-	repository := repository.NewRepository(db)
+	rdb, err := database.RedisConnect()
+	if err != nil {
+		log.Fatal().AnErr("error", err)
+	}
 
-	userService := user_service.NewService(repository)
+	userRepo := postgres.NewUserRepository(pgdb)
+	userCache := redis.NewUserCache(rdb)
+
+	userService := user_service.NewService(userRepo, userCache)
 	userHandler := user_handler.NewHandler(userService, routers.AuthGroupFullRefreshPath)
 
-	authService := auth_service.NewService(repository)
+	authService := auth_service.NewService(userRepo)
 	authHandler := auth_handler.NewHandler(authService, routers.AuthGroupFullRefreshPath)
 
 	router := gin.Default()
