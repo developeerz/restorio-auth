@@ -22,17 +22,6 @@ func SignUpToUser(signUp *dto.SignUpRequest) *redis.User {
 	}
 }
 
-func UserAuthToIDAndAuth(userAuths []models.UserAuth) (int64, []string) {
-	id := userAuths[0].UserTelegramID
-
-	auths := make([]string, len(userAuths))
-	for i, v := range userAuths {
-		auths[i] = string(v.AuthID)
-	}
-
-	return id, auths
-}
-
 func JwtToAccess(jwts *jwt.Jwt) *dto.JwtAccessResponse {
 	return &dto.JwtAccessResponse{
 		Access: jwts.Access,

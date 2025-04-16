@@ -3,6 +3,7 @@ package auth
 import (
 	user_dto "github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
+	"github.com/developeerz/restorio-auth/internal/service/auth/mapper"
 	user_mapper "github.com/developeerz/restorio-auth/internal/service/user/mapper"
 )
 
@@ -25,7 +26,7 @@ func (service *Service) Refresh(refreshToken string) (*user_dto.JwtAccessRespons
 		return nil, "", err
 	}
 
-	jwts, err := jwt.NewJwt(user_mapper.UserAuthToIDAndAuth(userAuths))
+	jwts, err := jwt.NewJwt(mapper.UserAuthToIDAndAuth(userAuths))
 	if err != nil {
 		return nil, "", err
 	}

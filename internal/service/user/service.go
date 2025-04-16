@@ -41,7 +41,7 @@ func (service *Service) SignUp(req *dto.SignUpRequest) (int, error) {
 
 	err = service.cache.PutUser(req.Telegram, userBytes)
 	if err != nil {
-		return http.StatusConflict, err
+		return http.StatusInternalServerError, err
 	}
 
 	verificationCode := genVerificationCode()
@@ -92,7 +92,7 @@ func (service *Service) Verify(req *dto.VerificationRequest) (int, error) {
 
 	userAuth := &models.UserAuth{UserTelegramID: user.TelegramID, AuthID: models.USER}
 
-	err = service.repo.SetUserAuth(userAuth)
+	err = service.repo.CreateUserAuth(userAuth)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -112,7 +112,7 @@ func (service *Service) Login(req *dto.LoginRequest) (int, *dto.JwtAccessRespons
 	}
 
 	if user.Auths == nil {
-		return http.StatusUnauthorized, nil, "", fmt.Errorf("User TelegramID (%d): hasn't auths", user.TelegramID)
+		return http.StatusUnauthorized, nil, "", fmt.Errorf("user TelegramID (%d): hasn't auths", user.TelegramID)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))

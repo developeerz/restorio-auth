@@ -45,6 +45,6 @@ func (r *UserRepository) GetUserAuths(telegramID int64) ([]models.UserAuth, erro
 	return userAuths, result.Error
 }
 
-func (r *UserRepository) SetUserAuth(userAuth *models.UserAuth) error {
+func (r *UserRepository) CreateUserAuth(userAuth *models.UserAuth) error {
 	return r.db.Table("user_auths").Create(userAuth).Error
 }

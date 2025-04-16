@@ -3,7 +3,7 @@ package user
 import "github.com/developeerz/restorio-auth/internal/repository/postgres/models"
 
 type Repository interface {
-	SetUserAuth(userAuth *models.UserAuth) error
+	CreateUserAuth(userAuth *models.UserAuth) error
 	CreateUser(user *models.User) error
 	FindByTelegram(telegram string) (*models.User, error)
 	FindByTelegramWithAuths(telegram string) (*models.UserWithAuths, error)

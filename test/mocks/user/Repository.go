@@ -30,6 +30,24 @@ func (_m *Repository) CreateUser(_a0 *models.User) error {
 	return r0
 }
 
+// CreateUserAuth provides a mock function with given fields: userAuth
+func (_m *Repository) CreateUserAuth(userAuth *models.UserAuth) error {
+	ret := _m.Called(userAuth)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateUserAuth")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*models.UserAuth) error); ok {
+		r0 = rf(userAuth)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FindByTelegram provides a mock function with given fields: telegram
 func (_m *Repository) FindByTelegram(telegram string) (*models.User, error) {
 	ret := _m.Called(telegram)
@@ -88,24 +106,6 @@ func (_m *Repository) FindByTelegramWithAuths(telegram string) (*models.UserWith
 	}
 
 	return r0, r1
-}
-
-// SetUserAuth provides a mock function with given fields: userAuth
-func (_m *Repository) SetUserAuth(userAuth *models.UserAuth) error {
-	ret := _m.Called(userAuth)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetUserAuth")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*models.UserAuth) error); ok {
-		r0 = rf(userAuth)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // NewRepository creates a new instance of Repository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

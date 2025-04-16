@@ -1,260 +1,364 @@
 package user_test
 
-// import (
-// 	"errors"
-// 	"net/http"
-// 	"testing"
-
-// 	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
-// 	"github.com/developeerz/restorio-auth/internal/repository/postgres/models"
-// 	"github.com/developeerz/restorio-auth/internal/service/user"
-// 	"github.com/developeerz/restorio-auth/test/mocks"
-// 	mocks_user "github.com/developeerz/restorio-auth/test/mocks/user"
-// 	"github.com/stretchr/testify/assert"
-// 	"github.com/stretchr/testify/mock"
-// 	"golang.org/x/crypto/bcrypt"
-// )
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+	"testing"
+
+	"github.com/developeerz/restorio-auth/internal/handler/user/dto"
+	"github.com/developeerz/restorio-auth/internal/repository/postgres/models"
+	"github.com/developeerz/restorio-auth/internal/service/user"
+	"github.com/developeerz/restorio-auth/internal/service/user/mapper"
+	redis "github.com/developeerz/restorio-auth/pkg/repository/redis"
+	mocks_user "github.com/developeerz/restorio-auth/test/mocks/user"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	telegram          = "telegram"
+	decryptedPassword = "password"
+)
+
+func TestSignUpSuccess(t *testing.T) {
+	t.Parallel()
+
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
+
+	req := &dto.SignUpRequest{
+		Firstname: "firstname",
+		Lastname:  "lastname",
+		Telegram:  "@telegram",
+		Password:  "password",
+	}
+	user := mapper.SignUpToUser(req)
+
+	userBytes, err := json.Marshal(user)
+	assert.NoError(t, err)
+
+	mockUserCache.On("PutUser", telegram, userBytes).Return(nil)
+	mockUserCache.On("PutVerificationCode", telegram, mock.AnythingOfType("int")).Return(nil)
+
+	status, err := service.SignUp(req)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, status)
+
+	mockUserRepo.AssertExpectations(t)
+}
+
+func TestSignUpPutUserError(t *testing.T) {
+	t.Parallel()
+
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
+
+	req := &dto.SignUpRequest{
+		Firstname: "firstname",
+		Lastname:  "lastname",
+		Telegram:  "@telegram",
+		Password:  "password",
+	}
+	user := mapper.SignUpToUser(req)
 
-// const (
-// 	telegram          = "telegram"
-// 	decryptedPassword = "password"
-// )
+	userBytes, err := json.Marshal(user)
+	assert.NoError(t, err)
 
-// func TestSignUpSuccess(t *testing.T) {
-// 	t.Parallel()
+	mockUserCache.On("PutUser", telegram, userBytes).Return(errors.New(""))
+
+	status, err := service.SignUp(req)
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusInternalServerError, status)
 
-// 	mockUserRepo := mocks_user.NewRepository(t)
-// 	mockUserCache := mocks.NewCache(t)
-// 	service := user.NewService(mockUserRepo, mockUserCache)
+	mockUserRepo.AssertExpectations(t)
+}
 
-// 	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(nil)
-// 	mockUserRepo.On("CreateVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(nil)
+func TestSignUpPutVerificationCodeError(t *testing.T) {
+	t.Parallel()
 
-// 	req := &dto.SignUpRequest{
-// 		Firstname: "firstname",
-// 		Lastname:  "lastname",
-// 		Telegram:  "@telegram",
-// 		Password:  "password",
-// 	}
-// 	status, err := service.SignUp(req)
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusOK, status)
+	req := &dto.SignUpRequest{
+		Firstname: "firstname",
+		Lastname:  "lastname",
+		Telegram:  "@telegram",
+		Password:  "password",
+	}
+	user := mapper.SignUpToUser(req)
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	userBytes, err := json.Marshal(user)
+	assert.NoError(t, err)
 
-// func TestSignUpDublicatedUser(t *testing.T) {
-// 	t.Parallel()
+	mockUserCache.On("PutUser", telegram, userBytes).Return(nil)
+	mockUserCache.On("PutVerificationCode", telegram, mock.AnythingOfType("int")).Return(errors.New(""))
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+	status, err := service.SignUp(req)
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusInternalServerError, status)
 
-// 	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(errors.New("Dublicate user"))
+	mockUserRepo.AssertExpectations(t)
+}
 
-// 	req := &dto.SignUpRequest{
-// 		Firstname: "firstname",
-// 		Lastname:  "lastname",
-// 		Telegram:  "@telegram",
-// 		Password:  "password",
-// 	}
-// 	status, err := service.SignUp(req)
+func TestVerifySuccess(t *testing.T) {
+	t.Parallel()
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, http.StatusConflict, status)
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	var userTelegramID int64 = 111111
+	verificationCode := 111111
 
-// func TestSignUpDublicatedVerificationCode(t *testing.T) {
-// 	t.Parallel()
+	userCached := &redis.User{
+		TelegramID: userTelegramID,
+		Firstname:  "firstname",
+		Lastname:   "lastname",
+		Telegram:   telegram,
+		Password:   decryptedPassword,
+	}
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+	userBytes, err := json.Marshal(userCached)
+	assert.NoError(t, err)
 
-// 	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(nil)
-// 	mockUserRepo.On("CreateVerificationCode", mock.AnythingOfType("*models.UserCode")).
-// 		Return(errors.New("Dublicate verification code"))
+	mockUserCache.On("GetVerificationCode", telegram).Return(verificationCode, nil)
+	mockUserCache.On("GetUser", telegram).Return(userBytes, nil)
+	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(nil)
+	mockUserRepo.On("CreateUserAuth", mock.AnythingOfType("*models.UserAuth")).Return(nil)
 
-// 	req := &dto.SignUpRequest{
-// 		Firstname: "firstname",
-// 		Lastname:  "lastname",
-// 		Telegram:  "@telegram",
-// 		Password:  "password",
-// 	}
-// 	status, err := service.SignUp(req)
+	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
+	code, err := service.Verify(req)
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, http.StatusInternalServerError, status)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, code)
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	mockUserRepo.AssertExpectations(t)
+}
 
-// func TestVerifySuccess(t *testing.T) {
-// 	t.Parallel()
+func TestVerifyWrongTelegram(t *testing.T) {
+	t.Parallel()
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// 	var userID int64 = 1
+	verificationCode := 111111
 
-// 	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userID, nil)
-// 	mockUserRepo.On("DeleteVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(nil)
-// 	mockUserRepo.On("SetUserAuth", mock.AnythingOfType("*models.UserAuth")).Return(nil)
+	mockUserCache.On("GetVerificationCode", telegram).Return(-1, errors.New(""))
 
-// 	req := &dto.VerificationRequest{Code: 111000, Telegram: "@telegram"}
-// 	code, err := service.Verify(req)
+	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusOK, code)
+	code, err := service.Verify(req)
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, code)
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	mockUserRepo.AssertExpectations(t)
+}
 
-// func TestVerifyWrongVerificationCode(t *testing.T) {
-// 	t.Parallel()
+func TestVerifyWrongVerificationCode(t *testing.T) {
+	t.Parallel()
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// 	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).
-// 		Return(int64(0), errors.New("Wrong verification code"))
+	expectedVerificationCode := 111111
+	actualVerificationCode := 999999
 
-// 	req := &dto.VerificationRequest{Code: 111000, Telegram: "@telegram"}
-// 	code, err := service.Verify(req)
+	mockUserCache.On("GetVerificationCode", telegram).Return(actualVerificationCode, nil)
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, http.StatusUnauthorized, code)
+	req := &dto.VerificationRequest{Code: expectedVerificationCode, Telegram: "@telegram"}
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	code, err := service.Verify(req)
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, code)
 
-// func TestVerifyDeleteVerificationCodeError(t *testing.T) {
-// 	t.Parallel()
+	mockUserRepo.AssertExpectations(t)
+}
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+func TestVerifyGetUserError(t *testing.T) {
+	t.Parallel()
 
-// 	var userID int64 = 1
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// 	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userID, nil)
-// 	mockUserRepo.On("DeleteVerificationCode", mock.AnythingOfType("*models.UserCode")).
-// 		Return(errors.New("Cannot delete verification code"))
+	verificationCode := 111111
 
-// 	req := &dto.VerificationRequest{Code: 111000, Telegram: "@telegram"}
-// 	code, err := service.Verify(req)
+	mockUserCache.On("GetVerificationCode", telegram).Return(verificationCode, nil)
+	mockUserCache.On("GetUser", telegram).Return(nil, errors.New(""))
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, http.StatusInternalServerError, code)
+	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	code, err := service.Verify(req)
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusInternalServerError, code)
 
-// func TestVerifySetUserAuthError(t *testing.T) {
-// 	t.Parallel()
+	mockUserRepo.AssertExpectations(t)
+}
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+func TestVerifyCreateUserError(t *testing.T) {
+	t.Parallel()
 
-// 	var userID int64 = 1
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// 	mockUserRepo.On("CheckVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(userID, nil)
-// 	mockUserRepo.On("DeleteVerificationCode", mock.AnythingOfType("*models.UserCode")).Return(nil)
-// 	mockUserRepo.On("SetUserAuth", mock.AnythingOfType("*models.UserAuth")).Return(errors.New("Cannot create user auth"))
+	var userTelegramID int64 = 111111
+	verificationCode := 111111
 
-// 	req := &dto.VerificationRequest{Code: 111000, Telegram: "@telegram"}
-// 	code, err := service.Verify(req)
+	userCached := &redis.User{
+		TelegramID: userTelegramID,
+		Firstname:  "firstname",
+		Lastname:   "lastname",
+		Telegram:   telegram,
+		Password:   decryptedPassword,
+	}
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, http.StatusInternalServerError, code)
+	userBytes, err := json.Marshal(userCached)
+	assert.NoError(t, err)
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	mockUserCache.On("GetVerificationCode", telegram).Return(verificationCode, nil)
+	mockUserCache.On("GetUser", telegram).Return(userBytes, nil)
+	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(errors.New(""))
 
-// func TestLoginSuccess(t *testing.T) {
-// 	t.Parallel()
+	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+	code, err := service.Verify(req)
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusInternalServerError, code)
 
-// 	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
-// 	assert.NoError(t, err)
+	mockUserRepo.AssertExpectations(t)
+}
 
-// 	password := string(bpassword)
-// 	auths := []models.Authority{{ID: "USER", Description: "descr"}}
-// 	user := &models.UserWithAuths{ID: 1, Telegram: telegram, Password: password, Auths: auths}
+func TestVerifyCreateUserAuthError(t *testing.T) {
+	t.Parallel()
 
-// 	mockUserRepo.On("FindByTelegramWithAuths", telegram).Return(user, nil)
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// 	req := &dto.LoginRequest{Telegram: "@telegram", Password: decryptedPassword}
-// 	code, _, _, err := service.Login(req)
+	var userTelegramID int64 = 111111
+	verificationCode := 111111
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, http.StatusOK, code)
+	userCached := &redis.User{
+		TelegramID: userTelegramID,
+		Firstname:  "firstname",
+		Lastname:   "lastname",
+		Telegram:   telegram,
+		Password:   decryptedPassword,
+	}
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	userBytes, err := json.Marshal(userCached)
+	assert.NoError(t, err)
 
-// func TestLoginFindByTelegramError(t *testing.T) {
-// 	t.Parallel()
+	mockUserCache.On("GetVerificationCode", telegram).Return(verificationCode, nil)
+	mockUserCache.On("GetUser", telegram).Return(userBytes, nil)
+	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(nil)
+	mockUserRepo.On("CreateUserAuth", mock.AnythingOfType("*models.UserAuth")).Return(errors.New(""))
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
 
-// 	mockUserRepo.On("FindByTelegramWithAuths", telegram).Return(nil, errors.New("Cannot find user"))
+	code, err := service.Verify(req)
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusInternalServerError, code)
 
-// 	req := &dto.LoginRequest{Telegram: "@telegram", Password: decryptedPassword}
-// 	code, _, _, err := service.Login(req)
+	mockUserRepo.AssertExpectations(t)
+}
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, http.StatusNotFound, code)
+func TestLoginSuccess(t *testing.T) {
+	t.Parallel()
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// func TestLoginNotVerified(t *testing.T) {
-// 	t.Parallel()
+	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	assert.NoError(t, err)
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+	password := string(bpassword)
+	auths := []models.Authority{{ID: "USER", Description: "descr"}}
+	user := &models.UserWithAuths{TelegramID: 111111, Telegram: telegram, Password: password, Auths: auths}
 
-// 	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
-// 	assert.NoError(t, err)
+	mockUserRepo.On("FindByTelegramWithAuths", telegram).Return(user, nil)
 
-// 	password := string(bpassword)
-// 	user := &models.UserWithAuths{ID: 1, Telegram: telegram, Password: password, Auths: nil}
+	req := &dto.LoginRequest{Telegram: "@telegram", Password: decryptedPassword}
+	code, _, _, err := service.Login(req)
 
-// 	mockUserRepo.On("FindByTelegramWithAuths", telegram).Return(user, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, code)
 
-// 	req := &dto.LoginRequest{Telegram: "@telegram", Password: decryptedPassword}
-// 	code, _, _, err := service.Login(req)
+	mockUserRepo.AssertExpectations(t)
+}
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, http.StatusUnauthorized, code)
+func TestLoginFindByTelegramError(t *testing.T) {
+	t.Parallel()
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// func TestLoginWrongPassword(t *testing.T) {
-// 	t.Parallel()
+	mockUserRepo.On("FindByTelegramWithAuths", telegram).Return(nil, errors.New("Cannot find user"))
 
-// 	mockUserRepo := mocks.NewRepository(t)
-// 	service := user.NewService(mockUserRepo)
+	req := &dto.LoginRequest{Telegram: "@telegram", Password: decryptedPassword}
+	code, _, _, err := service.Login(req)
 
-// 	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
-// 	assert.NoError(t, err)
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusNotFound, code)
 
-// 	password := string(bpassword)
-// 	auths := []models.Authority{{ID: "USER", Description: "descr"}}
-// 	user := &models.UserWithAuths{ID: 1, Telegram: telegram, Password: password, Auths: auths}
+	mockUserRepo.AssertExpectations(t)
+}
 
-// 	mockUserRepo.On("FindByTelegramWithAuths", telegram).Return(user, nil)
+func TestLoginNotVerified(t *testing.T) {
+	t.Parallel()
 
-// 	req := &dto.LoginRequest{Telegram: "@telegram", Password: "abracadabra"}
-// 	code, _, _, err := service.Login(req)
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, http.StatusUnauthorized, code)
+	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	assert.NoError(t, err)
 
-// 	mockUserRepo.AssertExpectations(t)
-// }
+	password := string(bpassword)
+	user := &models.UserWithAuths{TelegramID: 111111, Telegram: telegram, Password: password, Auths: nil}
+
+	mockUserRepo.On("FindByTelegramWithAuths", telegram).Return(user, nil)
+
+	req := &dto.LoginRequest{Telegram: "@telegram", Password: decryptedPassword}
+	code, _, _, err := service.Login(req)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusUnauthorized, code)
+
+	mockUserRepo.AssertExpectations(t)
+}
+
+func TestLoginWrongPassword(t *testing.T) {
+	t.Parallel()
+
+	mockUserRepo := mocks_user.NewRepository(t)
+	mockUserCache := mocks_user.NewCache(t)
+	service := user.NewService(mockUserRepo, mockUserCache)
+
+	bpassword, err := bcrypt.GenerateFromPassword([]byte(decryptedPassword), bcrypt.DefaultCost)
+	assert.NoError(t, err)
+
+	password := string(bpassword)
+	auths := []models.Authority{{ID: "USER", Description: "descr"}}
+	user := &models.UserWithAuths{TelegramID: 111111, Telegram: telegram, Password: password, Auths: auths}
+
+	mockUserRepo.On("FindByTelegramWithAuths", telegram).Return(user, nil)
+
+	req := &dto.LoginRequest{Telegram: "@telegram", Password: "abracadabra"}
+	code, _, _, err := service.Login(req)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusUnauthorized, code)
+
+	mockUserRepo.AssertExpectations(t)
+}
