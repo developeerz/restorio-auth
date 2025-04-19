@@ -36,7 +36,7 @@ func (handler *Handler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	status, err := handler.service.SignUp(&req)
+	status, err := handler.service.SignUp(ctx.Request.Context(), &req)
 	if err != nil {
 		log.Error().AnErr("SignUp", err).Send()
 		ctx.AbortWithStatus(status)
@@ -59,7 +59,7 @@ func (handler *Handler) Verification(ctx *gin.Context) {
 		return
 	}
 
-	status, err := handler.service.Verify(&req)
+	status, err := handler.service.Verify(ctx.Request.Context(), &req)
 	if err != nil {
 		log.Error().AnErr("Verification", err).Send()
 		ctx.AbortWithStatus(status)

@@ -1,6 +1,10 @@
 package user
 
-import "github.com/developeerz/restorio-auth/internal/repository/postgres/models"
+import (
+	"context"
+
+	"github.com/developeerz/restorio-auth/internal/repository/postgres/models"
+)
 
 type Repository interface {
 	CreateUserAuth(userAuth *models.UserAuth) error
@@ -10,8 +14,8 @@ type Repository interface {
 }
 
 type Cache interface {
-	PutUser(telegram string, userJSON []byte) error
-	PutVerificationCode(telegram string, code int) error
-	GetUser(telegram string) ([]byte, error)
-	GetVerificationCode(telegram string) (int, error)
+	PutUser(ctx context.Context, telegram string, userJSON []byte) error
+	PutVerificationCode(ctx context.Context, telegram string, code int) error
+	GetUser(ctx context.Context, telegram string) ([]byte, error)
+	GetVerificationCode(ctx context.Context, telegram string) (int, error)
 }

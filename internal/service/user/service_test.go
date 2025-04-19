@@ -1,6 +1,7 @@
 package user_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -25,6 +26,8 @@ const (
 func TestSignUpSuccess(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockUserRepo := mocks_user.NewRepository(t)
 	mockUserCache := mocks_user.NewCache(t)
 	service := user.NewService(mockUserRepo, mockUserCache)
@@ -40,10 +43,10 @@ func TestSignUpSuccess(t *testing.T) {
 	userBytes, err := json.Marshal(user)
 	assert.NoError(t, err)
 
-	mockUserCache.On("PutUser", telegram, userBytes).Return(nil)
-	mockUserCache.On("PutVerificationCode", telegram, mock.AnythingOfType("int")).Return(nil)
+	mockUserCache.On("PutUser", ctx, telegram, userBytes).Return(nil)
+	mockUserCache.On("PutVerificationCode", ctx, telegram, mock.AnythingOfType("int")).Return(nil)
 
-	status, err := service.SignUp(req)
+	status, err := service.SignUp(ctx, req)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, status)
 
@@ -53,6 +56,8 @@ func TestSignUpSuccess(t *testing.T) {
 func TestSignUpPutUserError(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockUserRepo := mocks_user.NewRepository(t)
 	mockUserCache := mocks_user.NewCache(t)
 	service := user.NewService(mockUserRepo, mockUserCache)
@@ -68,9 +73,9 @@ func TestSignUpPutUserError(t *testing.T) {
 	userBytes, err := json.Marshal(user)
 	assert.NoError(t, err)
 
-	mockUserCache.On("PutUser", telegram, userBytes).Return(errors.New(""))
+	mockUserCache.On("PutUser", ctx, telegram, userBytes).Return(errors.New(""))
 
-	status, err := service.SignUp(req)
+	status, err := service.SignUp(ctx, req)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, status)
 
@@ -80,6 +85,8 @@ func TestSignUpPutUserError(t *testing.T) {
 func TestSignUpPutVerificationCodeError(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockUserRepo := mocks_user.NewRepository(t)
 	mockUserCache := mocks_user.NewCache(t)
 	service := user.NewService(mockUserRepo, mockUserCache)
@@ -95,10 +102,10 @@ func TestSignUpPutVerificationCodeError(t *testing.T) {
 	userBytes, err := json.Marshal(user)
 	assert.NoError(t, err)
 
-	mockUserCache.On("PutUser", telegram, userBytes).Return(nil)
-	mockUserCache.On("PutVerificationCode", telegram, mock.AnythingOfType("int")).Return(errors.New(""))
+	mockUserCache.On("PutUser", ctx, telegram, userBytes).Return(nil)
+	mockUserCache.On("PutVerificationCode", ctx, telegram, mock.AnythingOfType("int")).Return(errors.New(""))
 
-	status, err := service.SignUp(req)
+	status, err := service.SignUp(ctx, req)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, status)
 
@@ -107,6 +114,8 @@ func TestSignUpPutVerificationCodeError(t *testing.T) {
 
 func TestVerifySuccess(t *testing.T) {
 	t.Parallel()
+
+	ctx := context.Background()
 
 	mockUserRepo := mocks_user.NewRepository(t)
 	mockUserCache := mocks_user.NewCache(t)
@@ -126,13 +135,13 @@ func TestVerifySuccess(t *testing.T) {
 	userBytes, err := json.Marshal(userCached)
 	assert.NoError(t, err)
 
-	mockUserCache.On("GetVerificationCode", telegram).Return(verificationCode, nil)
-	mockUserCache.On("GetUser", telegram).Return(userBytes, nil)
+	mockUserCache.On("GetVerificationCode", ctx, telegram).Return(verificationCode, nil)
+	mockUserCache.On("GetUser", ctx, telegram).Return(userBytes, nil)
 	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(nil)
 	mockUserRepo.On("CreateUserAuth", mock.AnythingOfType("*models.UserAuth")).Return(nil)
 
 	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
-	code, err := service.Verify(req)
+	code, err := service.Verify(ctx, req)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, code)
@@ -143,17 +152,19 @@ func TestVerifySuccess(t *testing.T) {
 func TestVerifyWrongTelegram(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockUserRepo := mocks_user.NewRepository(t)
 	mockUserCache := mocks_user.NewCache(t)
 	service := user.NewService(mockUserRepo, mockUserCache)
 
 	verificationCode := 111111
 
-	mockUserCache.On("GetVerificationCode", telegram).Return(-1, errors.New(""))
+	mockUserCache.On("GetVerificationCode", ctx, telegram).Return(-1, errors.New(""))
 
 	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
 
-	code, err := service.Verify(req)
+	code, err := service.Verify(ctx, req)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, code)
 
@@ -163,6 +174,8 @@ func TestVerifyWrongTelegram(t *testing.T) {
 func TestVerifyWrongVerificationCode(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockUserRepo := mocks_user.NewRepository(t)
 	mockUserCache := mocks_user.NewCache(t)
 	service := user.NewService(mockUserRepo, mockUserCache)
@@ -170,11 +183,11 @@ func TestVerifyWrongVerificationCode(t *testing.T) {
 	expectedVerificationCode := 111111
 	actualVerificationCode := 999999
 
-	mockUserCache.On("GetVerificationCode", telegram).Return(actualVerificationCode, nil)
+	mockUserCache.On("GetVerificationCode", ctx, telegram).Return(actualVerificationCode, nil)
 
 	req := &dto.VerificationRequest{Code: expectedVerificationCode, Telegram: "@telegram"}
 
-	code, err := service.Verify(req)
+	code, err := service.Verify(ctx, req)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, code)
 
@@ -184,18 +197,20 @@ func TestVerifyWrongVerificationCode(t *testing.T) {
 func TestVerifyGetUserError(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockUserRepo := mocks_user.NewRepository(t)
 	mockUserCache := mocks_user.NewCache(t)
 	service := user.NewService(mockUserRepo, mockUserCache)
 
 	verificationCode := 111111
 
-	mockUserCache.On("GetVerificationCode", telegram).Return(verificationCode, nil)
-	mockUserCache.On("GetUser", telegram).Return(nil, errors.New(""))
+	mockUserCache.On("GetVerificationCode", ctx, telegram).Return(verificationCode, nil)
+	mockUserCache.On("GetUser", ctx, telegram).Return(nil, errors.New(""))
 
 	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
 
-	code, err := service.Verify(req)
+	code, err := service.Verify(ctx, req)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, code)
 
@@ -205,6 +220,8 @@ func TestVerifyGetUserError(t *testing.T) {
 func TestVerifyCreateUserError(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockUserRepo := mocks_user.NewRepository(t)
 	mockUserCache := mocks_user.NewCache(t)
 	service := user.NewService(mockUserRepo, mockUserCache)
@@ -223,13 +240,13 @@ func TestVerifyCreateUserError(t *testing.T) {
 	userBytes, err := json.Marshal(userCached)
 	assert.NoError(t, err)
 
-	mockUserCache.On("GetVerificationCode", telegram).Return(verificationCode, nil)
-	mockUserCache.On("GetUser", telegram).Return(userBytes, nil)
+	mockUserCache.On("GetVerificationCode", ctx, telegram).Return(verificationCode, nil)
+	mockUserCache.On("GetUser", ctx, telegram).Return(userBytes, nil)
 	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(errors.New(""))
 
 	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
 
-	code, err := service.Verify(req)
+	code, err := service.Verify(ctx, req)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, code)
 
@@ -239,6 +256,8 @@ func TestVerifyCreateUserError(t *testing.T) {
 func TestVerifyCreateUserAuthError(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockUserRepo := mocks_user.NewRepository(t)
 	mockUserCache := mocks_user.NewCache(t)
 	service := user.NewService(mockUserRepo, mockUserCache)
@@ -257,14 +276,14 @@ func TestVerifyCreateUserAuthError(t *testing.T) {
 	userBytes, err := json.Marshal(userCached)
 	assert.NoError(t, err)
 
-	mockUserCache.On("GetVerificationCode", telegram).Return(verificationCode, nil)
-	mockUserCache.On("GetUser", telegram).Return(userBytes, nil)
+	mockUserCache.On("GetVerificationCode", ctx, telegram).Return(verificationCode, nil)
+	mockUserCache.On("GetUser", ctx, telegram).Return(userBytes, nil)
 	mockUserRepo.On("CreateUser", mock.AnythingOfType("*models.User")).Return(nil)
 	mockUserRepo.On("CreateUserAuth", mock.AnythingOfType("*models.UserAuth")).Return(errors.New(""))
 
 	req := &dto.VerificationRequest{Code: verificationCode, Telegram: "@telegram"}
 
-	code, err := service.Verify(req)
+	code, err := service.Verify(ctx, req)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, code)
 
