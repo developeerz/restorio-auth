@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+
 	user_dto "github.com/developeerz/restorio-auth/internal/handler/user/dto"
 	"github.com/developeerz/restorio-auth/internal/jwt"
 	"github.com/developeerz/restorio-auth/internal/service/auth/mapper"
@@ -15,13 +17,13 @@ func NewService(repo Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (service *Service) Refresh(refreshToken string) (*user_dto.JwtAccessResponse, string, error) {
+func (service *Service) Refresh(ctx context.Context, refreshToken string) (*user_dto.JwtAccessResponse, string, error) {
 	telegramID, err := jwt.ParseRefresh(refreshToken)
 	if err != nil {
 		return nil, "", err
 	}
 
-	userAuths, err := service.repo.GetUserAuths(telegramID)
+	userAuths, err := service.repo.GetUserAuths(ctx, telegramID)
 	if err != nil {
 		return nil, "", err
 	}

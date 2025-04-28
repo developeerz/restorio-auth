@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -15,6 +16,8 @@ import (
 func TestRefreshSuccess(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockAuthRepo := mocks.NewRepository(t)
 	service := auth.NewService(mockAuthRepo)
 
@@ -25,9 +28,9 @@ func TestRefreshSuccess(t *testing.T) {
 
 	userAuths := []models.UserAuth{{UserTelegramID: userTelegramID, AuthID: models.USER}}
 
-	mockAuthRepo.On("GetUserAuths", userTelegramID).Return(userAuths, nil)
+	mockAuthRepo.On("GetUserAuths", ctx, userTelegramID).Return(userAuths, nil)
 
-	_, _, err = service.Refresh(jwts.Refresh)
+	_, _, err = service.Refresh(ctx, jwts.Refresh)
 	assert.NoError(t, err)
 
 	mockAuthRepo.AssertExpectations(t)
@@ -35,6 +38,8 @@ func TestRefreshSuccess(t *testing.T) {
 
 func TestRefresParseError(t *testing.T) {
 	t.Parallel()
+
+	ctx := context.Background()
 
 	mockAuthRepo := mocks.NewRepository(t)
 	service := auth.NewService(mockAuthRepo)
@@ -44,7 +49,7 @@ func TestRefresParseError(t *testing.T) {
 	jwts, err := jwt.NewJwt(userTelegramID, auths)
 	assert.NoError(t, err)
 
-	_, _, err = service.Refresh(fmt.Sprint(jwts.Refresh, "error"))
+	_, _, err = service.Refresh(ctx, fmt.Sprint(jwts.Refresh, "error"))
 
 	assert.Error(t, err)
 
@@ -54,6 +59,8 @@ func TestRefresParseError(t *testing.T) {
 func TestRefresGetUserAuthsError(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	mockAuthRepo := mocks.NewRepository(t)
 	service := auth.NewService(mockAuthRepo)
 
@@ -62,9 +69,9 @@ func TestRefresGetUserAuthsError(t *testing.T) {
 	jwts, err := jwt.NewJwt(userTelegramID, auths)
 	assert.NoError(t, err)
 
-	mockAuthRepo.On("GetUserAuths", userTelegramID).Return(nil, errors.New("Get user auths error"))
+	mockAuthRepo.On("GetUserAuths", ctx, userTelegramID).Return(nil, errors.New("Get user auths error"))
 
-	_, _, err = service.Refresh(jwts.Refresh)
+	_, _, err = service.Refresh(ctx, jwts.Refresh)
 
 	assert.Error(t, err)
 

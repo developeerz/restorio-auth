@@ -7,10 +7,10 @@ import (
 )
 
 type Repository interface {
-	CreateUserAuth(userAuth *models.UserAuth) error
-	CreateUser(user *models.User) error
-	FindByTelegram(telegram string) (*models.User, error)
-	FindByTelegramWithAuths(telegram string) (*models.UserWithAuths, error)
+	CreateUserAuth(ctx context.Context, userAuth *models.UserAuth) error
+	CreateUser(ctx context.Context, user *models.User) error
+	FindByTelegram(ctx context.Context, telegram string) (*models.User, error)
+	FindByTelegramWithAuths(ctx context.Context, telegram string) (*models.UserWithAuths, error)
 }
 
 type Cache interface {

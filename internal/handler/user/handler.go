@@ -82,7 +82,7 @@ func (handler *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	status, access, refresh, err := handler.service.Login(&req)
+	status, access, refresh, err := handler.service.Login(ctx.Request.Context(), &req)
 	if err != nil {
 		log.Error().AnErr("Login", err).Send()
 		ctx.AbortWithStatus(status)
