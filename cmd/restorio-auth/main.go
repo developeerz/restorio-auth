@@ -47,7 +47,7 @@ func main() {
 	router := gin.Default()
 	router.Use(middleware.Logging)
 
-	routers.NewMetricsRouter(router)
+	// routers.NewMetricsRouter(router)
 	routers.NewUserRouter(router, userHandler)
 	routers.NewAuthRouter(router, authHandler)
 
