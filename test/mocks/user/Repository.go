@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	models "github.com/developeerz/restorio-auth/internal/repository/postgres/models"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -12,17 +14,17 @@ type Repository struct {
 	mock.Mock
 }
 
-// CreateUser provides a mock function with given fields: _a0
-func (_m *Repository) CreateUser(_a0 *models.User) error {
-	ret := _m.Called(_a0)
+// CreateUser provides a mock function with given fields: ctx, _a1
+func (_m *Repository) CreateUser(ctx context.Context, _a1 *models.User) error {
+	ret := _m.Called(ctx, _a1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateUser")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*models.User) error); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.User) error); ok {
+		r0 = rf(ctx, _a1)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -30,17 +32,17 @@ func (_m *Repository) CreateUser(_a0 *models.User) error {
 	return r0
 }
 
-// CreateUserAuth provides a mock function with given fields: userAuth
-func (_m *Repository) CreateUserAuth(userAuth *models.UserAuth) error {
-	ret := _m.Called(userAuth)
+// CreateUserAuth provides a mock function with given fields: ctx, userAuth
+func (_m *Repository) CreateUserAuth(ctx context.Context, userAuth *models.UserAuth) error {
+	ret := _m.Called(ctx, userAuth)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateUserAuth")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*models.UserAuth) error); ok {
-		r0 = rf(userAuth)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.UserAuth) error); ok {
+		r0 = rf(ctx, userAuth)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -48,9 +50,9 @@ func (_m *Repository) CreateUserAuth(userAuth *models.UserAuth) error {
 	return r0
 }
 
-// FindByTelegram provides a mock function with given fields: telegram
-func (_m *Repository) FindByTelegram(telegram string) (*models.User, error) {
-	ret := _m.Called(telegram)
+// FindByTelegram provides a mock function with given fields: ctx, telegram
+func (_m *Repository) FindByTelegram(ctx context.Context, telegram string) (*models.User, error) {
+	ret := _m.Called(ctx, telegram)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindByTelegram")
@@ -58,19 +60,19 @@ func (_m *Repository) FindByTelegram(telegram string) (*models.User, error) {
 
 	var r0 *models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*models.User, error)); ok {
-		return rf(telegram)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.User, error)); ok {
+		return rf(ctx, telegram)
 	}
-	if rf, ok := ret.Get(0).(func(string) *models.User); ok {
-		r0 = rf(telegram)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.User); ok {
+		r0 = rf(ctx, telegram)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(telegram)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, telegram)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -78,9 +80,9 @@ func (_m *Repository) FindByTelegram(telegram string) (*models.User, error) {
 	return r0, r1
 }
 
-// FindByTelegramWithAuths provides a mock function with given fields: telegram
-func (_m *Repository) FindByTelegramWithAuths(telegram string) (*models.UserWithAuths, error) {
-	ret := _m.Called(telegram)
+// FindByTelegramWithAuths provides a mock function with given fields: ctx, telegram
+func (_m *Repository) FindByTelegramWithAuths(ctx context.Context, telegram string) (*models.UserWithAuths, error) {
+	ret := _m.Called(ctx, telegram)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindByTelegramWithAuths")
@@ -88,19 +90,19 @@ func (_m *Repository) FindByTelegramWithAuths(telegram string) (*models.UserWith
 
 	var r0 *models.UserWithAuths
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*models.UserWithAuths, error)); ok {
-		return rf(telegram)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.UserWithAuths, error)); ok {
+		return rf(ctx, telegram)
 	}
-	if rf, ok := ret.Get(0).(func(string) *models.UserWithAuths); ok {
-		r0 = rf(telegram)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.UserWithAuths); ok {
+		r0 = rf(ctx, telegram)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.UserWithAuths)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(telegram)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, telegram)
 	} else {
 		r1 = ret.Error(1)
 	}

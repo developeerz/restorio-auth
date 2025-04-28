@@ -86,14 +86,14 @@ func (service *Service) Verify(ctx context.Context, req *dto.VerificationRequest
 		return http.StatusInternalServerError, err
 	}
 
-	err = service.repo.CreateUser(user)
+	err = service.repo.CreateUser(ctx, user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	userAuth := &models.UserAuth{UserTelegramID: user.TelegramID, AuthID: models.USER}
 
-	err = service.repo.CreateUserAuth(userAuth)
+	err = service.repo.CreateUserAuth(ctx, userAuth)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -107,7 +107,7 @@ func (service *Service) Login(ctx context.Context, req *dto.LoginRequest) (int, 
 
 	req.Telegram, _ = strings.CutPrefix(req.Telegram, "@")
 
-	user, err = service.repo.FindByTelegramWithAuths(req.Telegram)
+	user, err = service.repo.FindByTelegramWithAuths(ctx, req.Telegram)
 	if err != nil {
 		return http.StatusNotFound, nil, "", err
 	}

@@ -34,7 +34,7 @@ func (handler *Handler) Refresh(ctx *gin.Context) {
 		return
 	}
 
-	access, refresh, err := handler.service.Refresh(refreshOld)
+	access, refresh, err := handler.service.Refresh(ctx.Request.Context(), refreshOld)
 	if err != nil {
 		log.Error().AnErr("Refresh", err).Send()
 		ctx.Status(http.StatusUnauthorized)
