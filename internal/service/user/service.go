@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -29,7 +30,7 @@ func NewService(repo Repository, cache Cache) *Service {
 	return &Service{repo: repo, cache: cache}
 }
 
-func (service *Service) SignUp(req *dto.SignUpRequest) (int, error) {
+func (service *Service) SignUp(ctx context.Context, req *dto.SignUpRequest) (int, error) {
 	var err error
 
 	user := mapper.SignUpToUser(req)
@@ -39,14 +40,14 @@ func (service *Service) SignUp(req *dto.SignUpRequest) (int, error) {
 		return http.StatusInternalServerError, err
 	}
 
-	err = service.cache.PutUser(req.Telegram, userBytes)
+	err = service.cache.PutUser(ctx, req.Telegram, userBytes)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	verificationCode := genVerificationCode()
 
-	err = service.cache.PutVerificationCode(req.Telegram, verificationCode)
+	err = service.cache.PutVerificationCode(ctx, req.Telegram, verificationCode)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -54,13 +55,13 @@ func (service *Service) SignUp(req *dto.SignUpRequest) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (service *Service) Verify(req *dto.VerificationRequest) (int, error) {
+func (service *Service) Verify(ctx context.Context, req *dto.VerificationRequest) (int, error) {
 	var err error
 	var userCached redis.User
 
 	req.Telegram, _ = strings.CutPrefix(req.Telegram, "@")
 
-	verificationCode, err := service.cache.GetVerificationCode(req.Telegram)
+	verificationCode, err := service.cache.GetVerificationCode(ctx, req.Telegram)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -70,7 +71,7 @@ func (service *Service) Verify(req *dto.VerificationRequest) (int, error) {
 			fmt.Errorf("wrong verification code: expected: %d, but got: %d", verificationCode, req.Code)
 	}
 
-	userByte, err := service.cache.GetUser(req.Telegram)
+	userByte, err := service.cache.GetUser(ctx, req.Telegram)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -100,7 +101,7 @@ func (service *Service) Verify(req *dto.VerificationRequest) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (service *Service) Login(req *dto.LoginRequest) (int, *dto.JwtAccessResponse, string, error) {
+func (service *Service) Login(ctx context.Context, req *dto.LoginRequest) (int, *dto.JwtAccessResponse, string, error) {
 	var err error
 	var user *models.UserWithAuths
 
