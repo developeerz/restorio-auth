@@ -11,6 +11,7 @@ type Repository interface {
 	CreateUser(ctx context.Context, user *models.User) error
 	FindByTelegram(ctx context.Context, telegram string) (*models.User, error)
 	FindByTelegramWithAuths(ctx context.Context, telegram string) (*models.UserWithAuths, error)
+	Transaction(ctx context.Context, fn func(repo Repository) error) error
 }
 
 type Cache interface {

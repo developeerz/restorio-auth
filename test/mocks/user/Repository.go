@@ -6,6 +6,7 @@ import (
 	context "context"
 
 	models "github.com/developeerz/restorio-auth/internal/repository/postgres/models"
+	user "github.com/developeerz/restorio-auth/internal/service/user"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -108,6 +109,24 @@ func (_m *Repository) FindByTelegramWithAuths(ctx context.Context, telegram stri
 	}
 
 	return r0, r1
+}
+
+// Transaction provides a mock function with given fields: ctx, fn
+func (_m *Repository) Transaction(ctx context.Context, fn func(user.Repository) error) error {
+	ret := _m.Called(ctx, fn)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Transaction")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, func(user.Repository) error) error); ok {
+		r0 = rf(ctx, fn)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewRepository creates a new instance of Repository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
