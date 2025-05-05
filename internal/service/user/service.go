@@ -34,6 +34,12 @@ func (service *Service) SignUp(ctx context.Context, req *dto.SignUpRequest) (int
 	var err error
 
 	user := mapper.SignUpToUser(req)
+	telegram := user.Telegram
+
+	_, err = service.repo.FindByTelegram(ctx, telegram)
+	if err == nil {
+		return http.StatusConflict, fmt.Errorf("user with telegram(%s) already register", telegram)
+	}
 
 	userBytes, err := json.Marshal(user)
 	if err != nil {
@@ -86,14 +92,20 @@ func (service *Service) Verify(ctx context.Context, req *dto.VerificationRequest
 		return http.StatusInternalServerError, err
 	}
 
-	err = service.repo.CreateUser(ctx, user)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
+	err = service.repo.Transaction(ctx, func(repo Repository) error {
+		if err = service.repo.CreateUser(ctx, user); err != nil {
+			return err
+		}
 
-	userAuth := &models.UserAuth{UserTelegramID: user.TelegramID, AuthID: models.USER}
+		userAuth := &models.UserAuth{UserTelegramID: user.TelegramID, AuthID: models.USER}
 
-	err = service.repo.CreateUserAuth(ctx, userAuth)
+		if err = service.repo.CreateUserAuth(ctx, userAuth); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
