@@ -12,8 +12,8 @@ import (
 
 const (
 	CookieRefreshName = "refresh"
-	headerUserIDKey   = "X-Telegram-Id"
-	headerRolesKey    = "X-Roles"
+	HeaderUserIDKey   = "X-User-Id"
+	HeaderRolesKey    = "X-Roles"
 )
 
 type Handler struct {
