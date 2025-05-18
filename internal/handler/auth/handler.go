@@ -71,8 +71,8 @@ func (handler *Handler) CheckAccess(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Header(headerUserIDKey, id)
-	ctx.Header(headerRolesKey, strings.Join(roles, ","))
+	ctx.Header(HeaderUserIDKey, id)
+	ctx.Header(HeaderRolesKey, strings.Join(roles, ","))
 
 	ctx.Status(http.StatusOK)
 }
